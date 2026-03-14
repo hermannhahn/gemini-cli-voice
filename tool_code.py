@@ -1,31 +1,144 @@
+import sys
+import json
 import subprocess
+import os
+import shutil
 
-def speech(text: str):
-    """
-    Converts the provided text into spoken audio using the Piper text-to-speech engine.
-    """
+def find_piper():
+    # 1. Tenta encontrar no PATH do sistema
+    piper_path = shutil.which("piper")
+    if piper_path:
+        return piper_path
+    
+    # 2. Tenta caminhos comuns (incluindo o seu atual como fallback)
+    home = os.path.expanduser("~")
+    common_paths = [
+        os.path.join(home, "piper/piper/piper"),
+        os.path.join(home, "piper/piper"),
+        "/usr/local/bin/piper"
+    ]
+    
+    for path in common_paths:
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    return None
+
+def find_model():
+    # 1. Tenta encontrar no diretório da extensão ou no home
+    home = os.path.expanduser("~")
+    extension_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    model_names = ["miro_pt-BR.onnx", "pt_BR-faber-medium.onnx"] # Modelos comuns
+    search_dirs = [
+        extension_dir,
+        os.path.join(home, "piper"),
+        "/usr/local/share/piper"
+    ]
+    
+    # Se houver um caminho específico no seu home (seu caso atual)
+    legacy_path = os.path.join(home, "piper/miro_pt-BR.onnx")
+    if os.path.isfile(legacy_path):
+        return legacy_path
+
+    for d in search_dirs:
+        for m in model_names:
+            path = os.path.join(d, m)
+            if os.path.isfile(path):
+                return path
+    return None
+
+def speech_handler(arguments):
+    text = arguments.get("text", "")
     if not text.strip():
-        return "Error: Empty text provided for speech synthesis."
+        return {"content": [{"type": "text", "text": "Error: Empty text provided."}]}
 
-    # The piper command expects the text on stdin.
-    command = '/home/hermann/piper/piper/piper -q --model /home/hermann/piper/miro_pt-BR.onnx --length_scale 1.2 --output-raw | aplay -r 22050 -f S16_LE -t raw 2>/dev/null'
+    # Busca caminhos dinamicamente
+    # Prioriza variáveis de ambiente se o usuário quiser configurar manualmente
+    piper_exe = os.environ.get("VOICE_PIPER_PATH") or find_piper()
+    model_file = os.environ.get("VOICE_MODEL_PATH") or find_model()
+
+    if not piper_exe:
+        return {"isError": True, "content": [{"type": "text", "text": "Error: Piper executable not found. Please install piper or set VOICE_PIPER_PATH."}]}
+    if not model_file:
+        return {"isError": True, "content": [{"type": "text", "text": "Error: Voice model (.onnx) not found. Please place it in the extension folder or set VOICE_MODEL_PATH."}]}
+
+    # Monta o comando de forma segura
+    command = f"'{piper_exe}' -q --model '{model_file}' --length_scale 1.2 --output-raw | aplay -r 22050 -f S16_LE -t raw 2>/dev/null"
 
     try:
-        # Use subprocess.run with input to pass the text to piper's stdin
-        process = subprocess.run(
+        subprocess.run(
             command,
-            input=text.encode('utf-8'), # Encode text to bytes for stdin
+            input=text.encode('utf-8'),
             shell=True,
-            capture_output=True, # Capture stdout and stderr
-            check=True # Raise CalledProcessError for non-zero exit codes
+            check=True
         )
-        return "Speech synthesis and playback completed successfully."
-    except subprocess.CalledProcessError as e:
-        error_msg = f"Error executing speech command: {e.stderr.decode('utf-8') if e.stderr else str(e)}"
-        print(error_msg) # Still log for the user/debugging
-        return f"Failed to perform speech synthesis: {error_msg}"
+        return {"content": [{"type": "text", "text": "Speech synthesis and playback completed successfully."}]}
     except Exception as e:
-        error_msg = f"An unexpected error occurred: {str(e)}"
-        print(error_msg)
-        return f"Failed to perform speech synthesis: {error_msg}"
+        return {"isError": True, "content": [{"type": "text", "text": f"Error executing speech: {str(e)}"}]}
 
+def main():
+    while True:
+        try:
+            line = sys.stdin.readline()
+            if not line:
+                break
+            
+            request = json.loads(line)
+            method = request.get("method")
+            req_id = request.get("id")
+
+            if method == "initialize":
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "result": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {"tools": {}},
+                        "serverInfo": {"name": "gemini-cli-voice-mcp", "version": "1.0.0"}
+                    }
+                }
+            elif method == "notifications/initialized":
+                continue
+            
+            elif method == "tools/list":
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "result": {
+                        "tools": [
+                            {
+                                "name": "speech",
+                                "description": "Converts text to spoken audio via Piper. IMPORTANT: Use this tool whenever the user asks to 'falar', 'dizer', 'ler em voz alta', or 'responder por voz'.",
+                                "inputSchema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "text": {"type": "string", "description": "The text to be converted to speech."}
+                                    },
+                                    "required": ["text"]
+                                }
+                            }
+                        ]
+                    }
+                }
+            elif method == "tools/call":
+                tool_name = request.get("params", {}).get("name")
+                arguments = request.get("params", {}).get("arguments", {})
+                
+                if tool_name == "speech":
+                    result = speech_handler(arguments)
+                    response = {"jsonrpc": "2.0", "id": req_id, "result": result}
+                else:
+                    response = {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": "Tool not found"}}
+            else:
+                response = {"jsonrpc": "2.0", "id": req_id, "result": {}}
+
+            sys.stdout.write(json.dumps(response) + "\n")
+            sys.stdout.flush()
+
+        except EOFError:
+            break
+        except Exception:
+            continue
+
+if __name__ == "__main__":
+    main()

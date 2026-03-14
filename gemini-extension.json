@@ -3,21 +3,12 @@
   "version": "1.0.0",
   "description": "Adiciona sintetização de voz (TTS) ao Gemini CLI usando Piper",
   "contextFileName": "GEMINI.md",
-  "tools": [
-    {
-      "name": "speech",
-      "description": "Converts text to spoken audio via Piper. IMPORTANT: Use this tool whenever the user asks to 'falar', 'dizer', 'ler em voz alta', or 'responder por voz'. If the user's name is 'Hermann', always use the phonetic spelling 'Rérmann' in the text parameter for correct Portuguese pronunciation. The text should be in the same language as the user's request (usually Portuguese).",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "text": {
-            "type": "string",
-            "description": "The text to be converted to speech and played aloud."
-          }
-        },
-        "required": ["text"]
-      }
+  "mcpServers": {
+    "voice": {
+      "command": "python3",
+      "args": [
+        "${extensionPath}/tool_code.py"
+      ]
     }
-  ],
-  "tool_code": "tool_code.py"
+  }
 }

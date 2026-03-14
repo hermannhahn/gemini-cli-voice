@@ -1,33 +1,34 @@
 # Project Overview: gemini-cli-voice
 
-This directory contains the `gemini-cli-voice` project, which is a specialized extension designed to integrate text-to-speech capabilities into the Gemini CLI.
+Este diretório contém a extensão `gemini-cli-voice`, projetada para integrar capacidades de text-to-speech (TTS) nativamente ao Gemini CLI.
 
-## Purpose
+## Propósito
 
-The primary goal of this extension is to enable the AI model to communicate with the user via spoken audio. By providing a `speech` tool, the model can convert text into speech, enhancing interactivity and accessibility. This is particularly useful for:
-- Delivering verbal confirmations or instructions.
-- Providing spoken responses to user queries.
-- Creating a more natural conversational experience.
+A extensão permite que o modelo responda ao usuário via áudio falado, utilizando o motor Piper. O modelo deve usar a ferramenta `speech` sempre que for solicitado a falar, ler algo ou responder por voz.
 
-## Key Files
+## Arquitetura e Implementação
 
--   **README.md**: User-facing documentation describing the extension and its usage.
--   **GEMINI.md**: This internal documentation providing context for AI-driven development.
--   **tool_code.py**: Contains the Python implementation of the `speech` tool.
+A extensão foi implementada como um **servidor MCP (Model Context Protocol)** autônomo. 
 
-## Usage (Model's Perspective)
+- **gemini-extension.json**: Define o manifesto da extensão e o servidor MCP do tipo `stdio`.
+- **tool_code.py**: Contém o servidor MCP em Python que gerencia as requisições de ferramentas e lida com a sintetização via Piper.
+- **Protocolo**: Utiliza JSON-RPC 2.0 via entrada e saída padrão (stdin/stdout).
+- **Sem Dependências**: O código foi escrito em Python puro para garantir portabilidade imediata após o download, sem necessidade de pacotes externos.
 
-The model should use the `speech` tool whenever:
-- The user explicitly asks for a voice response (e.g., "fale", "responda por voz", "leia isso").
-- The user's intent implies verbal feedback is desired.
-- The user's name is "Hermann", use phonetic spelling "Rérmann" for better pronunciation in audio.
+## Uso pelo Modelo (Perspectiva de IA)
 
-### `speech(text: str)`
-- **Description**: Converts the provided `text` into spoken audio using the Piper engine.
-- **Language**: Ensure the `text` passed to the tool is in the same language as the user's request (typically Portuguese).
-- **Phonetics**: For specific names or terms that might be mispronounced, you may use phonetic approximations in the input string.
+O modelo deve invocar a ferramenta `speech` nas seguintes situações:
+- O usuário solicita explicitamente uma resposta por voz ("fale", "responda por voz", "leia isso").
+- A intenção do usuário implica um feedback falado.
+- Para o usuário "Hermann", deve-se usar a fonética "Rérmann" nas strings enviadas para a ferramenta para garantir uma pronúncia correta pelo motor de voz.
 
-## Development and Architecture
+### Ferramenta: `speech(text: str)`
+- **Descrição**: Converte o texto fornecido em áudio utilizando o motor Piper e o reproduz.
+- **Linguagem**: O texto deve estar no mesmo idioma da solicitação do usuário (geralmente Português).
+- **Tratamento de Erros**: O modelo deve informar ao usuário se a ferramenta falhar (ex: executável Piper não encontrado) e sugerir a configuração correta do ambiente.
 
--   **Technologies**: Python for tool implementation, `piper` (text-to-speech engine), `aplay` (audio playback).
--   **Conventions**: Documentation for both users (`README.md`) and internal AI context (`GEMINI.md`) is maintained within this root directory. Tool definitions are inlined in `gemini-extension.json`; implementation is in `tool_code.py`.
+## Configuração de Portabilidade
+
+A extensão utiliza descoberta dinâmica de caminhos para o executável `piper` e o modelo de voz (`.onnx`). Desenvolvedores podem sobrescrever os caminhos padrões utilizando as variáveis de ambiente:
+- `VOICE_PIPER_PATH`
+- `VOICE_MODEL_PATH`
