@@ -11,28 +11,37 @@ A extensão opera como um servidor **MCP (Model Context Protocol)** nativo via `
 Para que a sintetização funcione, sua máquina deve ter instalado:
 1.  **Piper**: O motor de texto para fala. [Download aqui](https://github.com/rhasspy/piper).
 2.  **Aplay**: Utilitário de reprodução de áudio (padrão em sistemas Linux/ALSA).
-3.  **Modelo de Voz (.onnx)**: Um arquivo de voz compatível com o Piper (ex: `miro_pt-BR.onnx`).
+3.  **Modelo de Voz (.onnx)**: Um arquivo de voz compatível com o Piper.
 
 ## Instalação
 
 Você pode instalar esta extensão diretamente do repositório:
 ```bash
-gemini extensions install https://github.com/seu-usuario/gemini-cli-voice
+gemini extensions install https://github.com/hermannhahn/gemini-cli-voice.git
 ```
 
-## Configuração de Caminhos (Portabilidade)
+## Como Adicionar Mais Vozes
 
-A extensão tenta localizar o executável `piper` e o modelo `.onnx` automaticamente em pastas comuns e no `PATH` do sistema. Caso seus arquivos estejam em locais customizados, você pode configurar os caminhos através de variáveis de ambiente ou via comando de configuração da extensão:
+Você pode baixar vozes em diversos idiomas e estilos (feminina, masculina, etc.) diretamente do repositório oficial de vozes do Piper:
 
+**Link para baixar mais vozes:**  
+👉 [Hugging Face - Piper Voices](https://huggingface.co/rhasspy/piper-voices/tree/main)
+
+### Instruções:
+1.  Navegue pelas pastas de idiomas (ex: `pt/pt_BR`) no link acima.
+2.  Escolha uma voz e baixe o arquivo que termina em `.onnx` e também o seu arquivo `.json` correspondente (que deve ter o mesmo nome).
+3.  Salve esses arquivos em uma pasta no seu computador.
+4.  No Gemini CLI, configure a extensão para usar a nova voz:
+    ```bash
+    gemini extensions config gemini-cli-voice "Voice Model Path" /caminho/completo/sua-voz.onnx
+    ```
+
+## Configuração de Portabilidade (Variáveis de Ambiente)
+
+Caso prefira configurar via terminal, a extensão também aceita as seguintes variáveis de ambiente:
 ```bash
-# Configurando via variáveis de ambiente
 export VOICE_PIPER_PATH="/caminho/para/piper"
-export VOICE_MODEL_PATH="/caminho/para/modelo.onnx"
-```
-
-Ou diretamente no Gemini CLI (se suportado pela versão):
-```bash
-gemini extensions config gemini-cli-voice VOICE_PIPER_PATH /caminho/para/piper
+export VOICE_MODEL_PATH="/caminho/para/sua-voz.onnx"
 ```
 
 ## Ferramentas Disponíveis
