@@ -3,8 +3,10 @@ import json
 import subprocess
 import os
 import shutil
+import threading
 
 def find_piper():
+    # ... (rest remains same until speech_handler)
     # 1. Tenta encontrar no PATH do sistema
     piper_path = shutil.which("piper")
     if piper_path:
@@ -47,34 +49,33 @@ def find_model():
                 return path
     return None
 
+def run_speech_task(command, text):
+    try:
+        p = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        p.communicate(input=text.encode('utf-8'))
+    except Exception:
+        pass
+
 def speech_handler(arguments):
     text = arguments.get("text", "")
     if not text.strip():
-        return {"content": [{"type": "text", "text": "Error: Empty text provided."}]}
+        return {"content": [{"type": "text", "text": "Error: Empty text."}]}
 
-    # Busca caminhos dinamicamente
-    # Prioriza variáveis de ambiente se o usuário quiser configurar manualmente
     piper_exe = os.environ.get("VOICE_PIPER_PATH") or find_piper()
     model_file = os.environ.get("VOICE_MODEL_PATH") or find_model()
 
     if not piper_exe:
-        return {"isError": True, "content": [{"type": "text", "text": "Error: Piper executable not found. Please install piper or set VOICE_PIPER_PATH."}]}
+        return {"isError": True, "content": [{"type": "text", "text": "Error: Piper not found."}]}
     if not model_file:
-        return {"isError": True, "content": [{"type": "text", "text": "Error: Voice model (.onnx) not found. Please place it in the extension folder or set VOICE_MODEL_PATH."}]}
+        return {"isError": True, "content": [{"type": "text", "text": "Error: Voice model not found."}]}
 
-    # Monta o comando de forma segura
     command = f"'{piper_exe}' -q --model '{model_file}' --length_scale 1.2 --output-raw | aplay -r 22050 -f S16_LE -t raw 2>/dev/null"
 
     try:
-        subprocess.run(
-            command,
-            input=text.encode('utf-8'),
-            shell=True,
-            check=True
-        )
-        return {"content": [{"type": "text", "text": "Speech synthesis and playback completed successfully."}]}
+        threading.Thread(target=run_speech_task, args=(command, text), daemon=True).start()
+        return {"content": [{"type": "text", "text": "Speech started."}]}
     except Exception as e:
-        return {"isError": True, "content": [{"type": "text", "text": f"Error executing speech: {str(e)}"}]}
+        return {"isError": True, "content": [{"type": "text", "text": f"Error: {str(e)}"}]}
 
 def main():
     while True:
