@@ -1,0 +1,28 @@
+{
+	"name": "gemini-cli-voice",
+	"version": "1.2.1",
+	"description": "Text-to-speech (TTS)",
+	"keywords": [
+		"TTS",
+		"Gemini",
+		"CLI"
+	],
+	"homepage": "https://github.com/hermannhahn/gemini-cli-voice#readme",
+	"bugs": {
+		"url": "https://github.com/hermannhahn/gemini-cli-voice/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/hermannhahn/gemini-cli-voice.git"
+	},
+	"license": "ISC",
+	"author": "Hermann Hahn",
+	"type": "python",
+	"main": "gemini-extension.json",
+	"scripts": {
+		"terminal": "node scripts/terminal.js"
+	},
+	"gemini-dependencies": {
+		"gemini-cli-voice": "https://github.com/hermannhahn/gemini-cli-voice"
+	}
+}

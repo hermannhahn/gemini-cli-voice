@@ -109,7 +109,7 @@ def main():
                         "tools": [
                             {
                                 "name": "speech",
-                                "description": "Converts text to spoken audio via Piper. IMPORTANT: Use this tool whenever the user asks to 'falar', 'dizer', 'ler em voz alta', or 'responder por voz'.",
+                                "description": "Converts text to spoken audio via Piper. IMPORTANT: Use this tool whenever the user asks to 'falar', 'dizer', 'ler em voz alta', or 'responder por voz'. If the tool fails (e.g., Piper or model not found), inform the user and suggest checking 'VOICE_PIPER_PATH' or 'VOICE_MODEL_PATH'.",
                                 "inputSchema": {
                                     "type": "object",
                                     "properties": {
