@@ -20,3 +20,15 @@ if (fs.existsSync(geminiExtensionPath)) {
 	fs.writeFileSync(geminiExtensionPath, content);
 	console.log("- gemini-extension.json updated.");
 }
+
+// Update tool_code.py serverInfo version
+const toolCodePath = path.join(__dirname, "../tool_code.py");
+if (fs.existsSync(toolCodePath)) {
+	let content = fs.readFileSync(toolCodePath, "utf8");
+	content = content.replace(
+		/"version":\s*".*?"/,
+		`"version": "${newVersion}"`,
+	);
+	fs.writeFileSync(toolCodePath, content);
+	console.log("- tool_code.py updated.");
+}

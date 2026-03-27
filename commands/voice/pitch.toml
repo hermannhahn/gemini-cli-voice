@@ -1,0 +1,13 @@
+description = "Altera a velocidade da voz (pitch)"
+prompt = """
+O usuário solicitou a alteração da velocidade da voz através do comando `/voice:pitch`.
+
+O valor fornecido pelo usuário é: {{args}}
+
+**PROTOCOLO:**
+1. Verifique se o valor `{{args}}` é um número válido (ex: 1.2).
+2. Se não houver valor ou for inválido, use `ask_user` para perguntar "Qual a velocidade desejada? (Ex: 1.0 para normal, 1.2 para mais rápido)".
+3. Chame a ferramenta `mcp_voice_pitch` passando o parâmetro `pitch` com o valor numérico (ex: `pitch=1.2`).
+4. **IMPORTANTE:** Assim que a configuração for confirmada, chame IMEDIATAMENTE a ferramenta `mcp_voice_speech` com um texto de teste, por exemplo: "Velocidade de fala ajustada para <valor_pitch>. Testando agora."
+5. Informe ao usuário no chat que a velocidade foi alterada e o teste iniciado.
+"""

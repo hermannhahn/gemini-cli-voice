@@ -1,4 +1,4 @@
 {
-  "model": "pt_BR-faber-medium.onnx",
-  "pitch": 1.2
+  "model": "en_US-ryan-low.onnx",
+  "pitch": 1.0
 }

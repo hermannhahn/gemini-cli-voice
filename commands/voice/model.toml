@@ -1,0 +1,35 @@
+description = "Altera o modelo de voz (.onnx)"
+prompt = """
+O usuário solicitou a troca do modelo de voz através do comando `/voice:model`.
+
+O argumento fornecido pelo usuário é: {{args}}
+
+**OPÇÕES DISPONÍVEIS:**
+- en_US-ryan-low.onnx (Inglês US - Male Low - Padrão)
+- en_US-bryce-medium.onnx (Inglês US - Male Medium)
+- en_US-amy-medium.onnx (Inglês US - Female Medium)
+- pt_BR-faber-medium.onnx (Português Brasil - Male Medium)
+- es_ES-sharvard-medium.onnx (Espanhol - Male Medium)
+- fr_FR-siwis-medium.onnx (Francês - Female Medium)
+- de_DE-thorsten-medium.onnx (Alemão - Male Medium)
+- zh_CN-huayan-medium.onnx (Chinês Mandarin - Female Medium)
+- ru_RU-irina-medium.onnx (Russo - Female Medium)
+
+**PROTOCOLO DE DECISÃO:**
+
+1. **SE NÃO HOUVER ARGUMENTO ({{args}} vazio):**
+   - Informe ao usuário o modelo atual.
+   - Apresente as opções acima usando `ask_user` (tipo "choice").
+   - **IMPORTANTE:** Informe que ele pode baixar mais modelos em: https://huggingface.co/rhasspy/piper-voices/
+
+2. **SE O ARGUMENTO FOR UM CAMINHO PARA UM DIRETÓRIO:**
+   - Use `ls -1 {{args}}/*.onnx` para listar os modelos.
+   - Apresente para escolha via `ask_user`.
+
+3. **SE O ARGUMENTO FOR UM NOME DE ARQUIVO OU CAMINHO ABSOLUTO:**
+   - Chame a ferramenta `mcp_voice_model` passando o valor.
+
+4. **APÓS SUCESSO:**
+   - Chame IMEDIATAMENTE `mcp_voice_speech` com o texto: "Modelo configurado. Testando agora."
+   - Informe a mudança no chat.
+"""

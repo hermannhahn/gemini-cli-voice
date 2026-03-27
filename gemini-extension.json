@@ -1,6 +1,6 @@
 {
   "name": "gemini-cli-voice",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Adiciona sintetização de voz (TTS) ao Gemini CLI usando Piper",
   "mcpServers": {
     "voice": {
@@ -9,35 +9,5 @@
         "${extensionPath}/tool_code.py"
       ]
     }
-  },
-  "commands": [
-    {
-      "name": "voice model",
-      "description": "Lista e altera o modelo de voz (.onnx) da extensão",
-      "tool": "voice_list_models"
-    },
-    {
-      "name": "voice pitch",
-      "description": "Altera a velocidade da voz (ex: /voice pitch 1.2)",
-      "arguments": [
-        {
-          "name": "value",
-          "description": "Valor numérico da velocidade (1.0 = normal)",
-          "type": "number",
-          "required": true
-        }
-      ],
-      "tool": "voice_config",
-      "mapArguments": {
-        "pitch": "$value"
-      }
-    }
-  ],
-  "settings": [
-    {
-      "name": "Voice Model Path",
-      "description": "Caminho completo para o arquivo de voz .onnx do Piper (ex: ~/piper/pt_BR-faber-medium.onnx)",
-      "envVar": "VOICE_MODEL_PATH"
-    }
-  ]
+  }
 }
