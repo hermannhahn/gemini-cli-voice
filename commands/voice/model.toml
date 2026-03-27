@@ -5,8 +5,8 @@ O usuário solicitou a troca do modelo de voz através do comando `/voice:model`
 O argumento fornecido pelo usuário é: {{args}}
 
 **OPÇÕES DISPONÍVEIS:**
-- en_US-ryan-low.onnx (Inglês US - Male Low - Padrão)
-- en_US-bryce-medium.onnx (Inglês US - Male Medium)
+- en_US-bryce-medium.onnx (Inglês US - Male Medium - Padrão)
+- en_US-ryan-low.onnx (Inglês US - Male Low)
 - en_US-amy-medium.onnx (Inglês US - Female Medium)
 - pt_BR-faber-medium.onnx (Português Brasil - Male Medium)
 - es_ES-sharvard-medium.onnx (Espanhol - Male Medium)

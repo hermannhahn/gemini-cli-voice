@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 BIN_DIR = os.path.join(BASE_DIR, "bin")
-DEFAULT_MODEL = "en_US-ryan-low.onnx"
+DEFAULT_MODEL = "en_US-bryce-medium.onnx"
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -189,7 +189,7 @@ def main():
                     "result": {
                         "protocolVersion": "2024-11-05",
                         "capabilities": {"tools": {}},
-                        "serverInfo": {"name": "gemini-cli-voice-mcp", "version": "1.2.3"}
+                        "serverInfo": {"name": "gemini-cli-voice-mcp", "version": "1.2.4"}
                     }
                 }
             elif method == "notifications/initialized":
