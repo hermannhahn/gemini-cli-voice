@@ -17,10 +17,17 @@
 	},
 	"license": "ISC",
 	"author": "Hermann Hahn",
-	"type": "python",
+	"type": "extension",
 	"main": "gemini-extension.json",
 	"scripts": {
-		"terminal": "node scripts/terminal.js"
+		"lint": "pylint *.py --disable=W1309,W1510,C0301,C0114,C0115,C0116",
+		"version": "node scripts/update-version.js && git add gemini-extension.json tool_code.py package.json",
+		"cleanup-releases": "node scripts/cleanup-releases.js",
+		"save": "git add . && git commit -m \"v$(node -p \"require('./package.json').version\")\" && git push",
+		"push:tags": "git push origin main --tags",
+		"update": "gemini extension update gemini-cli-schedule",
+		"push:release": "node -e \"const v = require('./package.json').version; require('child_process').execSync('gh release create v' + v + ' --generate-notes', {stdio: 'inherit'})\"",
+		"deploy": "npm run save && npm run lint && npm version patch && npm run push:tags && npm run push:release && npm run cleanup-releases && npm run update"
 	},
 	"gemini-dependencies": {
 		"gemini-cli-voice": "https://github.com/hermannhahn/gemini-cli-voice"

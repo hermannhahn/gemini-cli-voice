@@ -17,6 +17,7 @@ def find_piper():
     common_paths = [
         os.path.join(home, "piper/piper/piper"),
         os.path.join(home, "piper/piper"),
+        os.path.join(home, "piper"),
         "/usr/local/bin/piper"
     ]
     
@@ -37,7 +38,7 @@ def find_model():
         "/usr/local/share/piper"
     ]
     
-    # Se houver um caminho específico no seu home (seu caso atual)
+    # Se houver um caminho específico no seu home
     legacy_path = os.path.join(home, "piper/miro_pt-BR.onnx")
     if os.path.isfile(legacy_path):
         return legacy_path
@@ -47,6 +48,7 @@ def find_model():
             path = os.path.join(d, m)
             if os.path.isfile(path):
                 return path
+
     return None
 
 def run_speech_task(command, text):
@@ -84,6 +86,7 @@ def main():
             if not line:
                 break
             
+            version = json.load(open(os.path.join(os.path.dirname(__file__), 'package.json'))).get('version', '1.0.0')
             request = json.loads(line)
             method = request.get("method")
             req_id = request.get("id")
@@ -95,7 +98,7 @@ def main():
                     "result": {
                         "protocolVersion": "2024-11-05",
                         "capabilities": {"tools": {}},
-                        "serverInfo": {"name": "gemini-cli-voice-mcp", "version": "1.0.0"}
+                        "serverInfo": {"name": "gemini-cli-voice-mcp", "version": version}
                     }
                 }
             elif method == "notifications/initialized":
@@ -109,7 +112,7 @@ def main():
                         "tools": [
                             {
                                 "name": "speech",
-                                "description": "Converts text to spoken audio via Piper. IMPORTANT: Use this tool whenever the user asks to 'falar', 'dizer', 'ler em voz alta', or 'responder por voz'. If the tool fails (e.g., Piper or model not found), inform the user and suggest checking 'VOICE_PIPER_PATH' or 'VOICE_MODEL_PATH'.",
+                                "description": "Converts text to spoken audio via Piper. IMPORTANT: Use this tool whenever the user asks to speech or use voice.",
                                 "inputSchema": {
                                     "type": "object",
                                     "properties": {
