@@ -5,50 +5,48 @@ import os
 import shutil
 import threading
 
+# Caminhos padrão absolutos baseados na localização do script
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
+MODELS_DIR = os.path.join(BASE_DIR, "models")
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"model": "pt_BR-faber-medium.onnx", "pitch": 1.0}
+
+def save_config(config):
+    try:
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(config, f, indent=2)
+    except Exception as e:
+        return str(e)
+    return None
+
 def find_piper():
-    # ... (rest remains same until speech_handler)
-    # 1. Tenta encontrar no PATH do sistema
     piper_path = shutil.which("piper")
     if piper_path:
         return piper_path
     
-    # 2. Tenta caminhos comuns (incluindo o seu atual como fallback)
-    home = os.path.expanduser("~")
-    common_paths = [
-        os.path.join(home, "piper/piper/piper"),
-        os.path.join(home, "piper/piper"),
-        os.path.join(home, "piper"),
-        "/usr/local/bin/piper"
-    ]
-    
-    for path in common_paths:
-        if os.path.isfile(path) and os.access(path, os.X_OK):
-            return path
+    home_piper = os.path.expanduser("~/piper/piper/piper")
+    if os.path.isfile(home_piper) and os.access(home_piper, os.X_OK):
+        return home_piper
     return None
 
-def find_model():
-    # 1. Tenta encontrar no diretório da extensão ou no home
-    home = os.path.expanduser("~")
-    extension_dir = os.path.dirname(os.path.abspath(__file__))
+def get_model_path():
+    config = load_config()
+    model_path = os.path.join(MODELS_DIR, config.get("model", "pt_BR-faber-medium.onnx"))
+    if os.path.exists(model_path):
+        return model_path
     
-    model_names = ["miro_pt-BR.onnx", "pt_BR-faber-medium.onnx"] # Modelos comuns
-    search_dirs = [
-        extension_dir,
-        os.path.join(home, "piper"),
-        "/usr/local/share/piper"
-    ]
-    
-    # Se houver um caminho específico no seu home
-    legacy_path = os.path.join(home, "piper/miro_pt-BR.onnx")
-    if os.path.isfile(legacy_path):
-        return legacy_path
-
-    for d in search_dirs:
-        for m in model_names:
-            path = os.path.join(d, m)
-            if os.path.isfile(path):
-                return path
-
+    if os.path.exists(MODELS_DIR):
+        for f in sorted(os.listdir(MODELS_DIR)):
+            if f.endswith(".onnx"):
+                return os.path.join(MODELS_DIR, f)
     return None
 
 def run_speech_task(command, text):
@@ -63,21 +61,62 @@ def speech_handler(arguments):
     if not text.strip():
         return {"content": [{"type": "text", "text": "Error: Empty text."}]}
 
-    piper_exe = os.environ.get("VOICE_PIPER_PATH") or find_piper()
-    model_file = os.environ.get("VOICE_MODEL_PATH") or find_model()
+    config = load_config()
+    piper_exe = find_piper()
+    model_file = get_model_path()
 
     if not piper_exe:
-        return {"isError": True, "content": [{"type": "text", "text": "Error: Piper not found."}]}
+        return {"isError": True, "content": [{"type": "text", "text": "Error: Piper binary not found."}]}
     if not model_file:
         return {"isError": True, "content": [{"type": "text", "text": "Error: Voice model not found."}]}
 
-    command = f"'{piper_exe}' -q --model '{model_file}' --length_scale 1.2 --output-raw | aplay -r 22050 -f S16_LE -t raw 2>/dev/null"
+    pitch = float(config.get("pitch", 1.0))
+    length_scale = 1.0 / pitch if pitch > 0 else 1.0
+
+    command = f"'{piper_exe}' -q --model '{model_file}' --length_scale {length_scale} --output-raw | aplay -r 22050 -f S16_LE -t raw 2>/dev/null"
 
     try:
         threading.Thread(target=run_speech_task, args=(command, text), daemon=True).start()
-        return {"content": [{"type": "text", "text": "Speech started."}]}
+        return {"content": [{"type": "text", "text": f"Speech started (Model: {os.path.basename(model_file)}, Pitch: {pitch})"}]}
     except Exception as e:
         return {"isError": True, "content": [{"type": "text", "text": f"Error: {str(e)}"}]}
+
+def list_models_handler():
+    if not os.path.exists(MODELS_DIR):
+        return {"isError": True, "content": [{"type": "text", "text": "Models directory not found."}]}
+    
+    models = [f for f in sorted(os.listdir(MODELS_DIR)) if f.endswith(".onnx")]
+    return {"content": [{"type": "text", "text": "Available models:\n" + "\n".join(models)}]}
+
+def set_config_handler(arguments):
+    config = load_config()
+    updated = False
+    
+    if "model" in arguments:
+        model_name = arguments["model"]
+        if not model_name.endswith(".onnx"):
+            model_name += ".onnx"
+        
+        if os.path.exists(os.path.join(MODELS_DIR, model_name)):
+            config["model"] = model_name
+            updated = True
+        else:
+            return {"isError": True, "content": [{"type": "text", "text": f"Error: Model '{model_name}' not found in models/ directory."}]}
+            
+    if "pitch" in arguments:
+        try:
+            config["pitch"] = float(arguments["pitch"])
+            updated = True
+        except ValueError:
+            return {"isError": True, "content": [{"type": "text", "text": "Error: Pitch must be a number."}]}
+    
+    if updated:
+        err = save_config(config)
+        if err:
+            return {"isError": True, "content": [{"type": "text", "text": f"Error saving config: {err}"}]}
+        return {"content": [{"type": "text", "text": f"Voice configuration updated: Model={config['model']}, Pitch={config['pitch']}"}]}
+    
+    return {"content": [{"type": "text", "text": "No changes applied."}]}
 
 def main():
     while True:
@@ -86,7 +125,6 @@ def main():
             if not line:
                 break
             
-            version = json.load(open(os.path.join(os.path.dirname(__file__), 'package.json'))).get('version', '1.0.0')
             request = json.loads(line)
             method = request.get("method")
             req_id = request.get("id")
@@ -98,7 +136,7 @@ def main():
                     "result": {
                         "protocolVersion": "2024-11-05",
                         "capabilities": {"tools": {}},
-                        "serverInfo": {"name": "gemini-cli-voice-mcp", "version": version}
+                        "serverInfo": {"name": "gemini-cli-voice-mcp", "version": "1.2.1"}
                     }
                 }
             elif method == "notifications/initialized":
@@ -112,14 +150,30 @@ def main():
                         "tools": [
                             {
                                 "name": "speech",
-                                "description": "Converts text to spoken audio via Piper. IMPORTANT: Use this tool whenever the user asks to speech or use voice.",
+                                "description": "Converts text to spoken audio. Usage: speech(text='Hello')",
                                 "inputSchema": {
                                     "type": "object",
                                     "properties": {
-                                        "text": {"type": "string", "description": "The text to be converted to speech."}
+                                        "text": {"type": "string", "description": "Text to speak"}
                                     },
                                     "required": ["text"]
                                 }
+                            },
+                            {
+                                "name": "voice_config",
+                                "description": "Configure voice settings. Use to change model or pitch. Examples: voice_config(model='pt_BR-cadu-medium.onnx'), voice_config(pitch=1.2)",
+                                "inputSchema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "model": {"type": "string", "description": "Filename of the .onnx model"},
+                                        "pitch": {"type": "number", "description": "Speed multiplier (e.g., 1.2)"}
+                                    }
+                                }
+                            },
+                            {
+                                "name": "voice_list_models",
+                                "description": "Lists all available voice models in the extension directory.",
+                                "inputSchema": {"type": "object", "properties": {}}
                             }
                         ]
                     }
@@ -130,9 +184,14 @@ def main():
                 
                 if tool_name == "speech":
                     result = speech_handler(arguments)
-                    response = {"jsonrpc": "2.0", "id": req_id, "result": result}
+                elif tool_name == "voice_config":
+                    result = set_config_handler(arguments)
+                elif tool_name == "voice_list_models":
+                    result = list_models_handler()
                 else:
-                    response = {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": "Tool not found"}}
+                    result = {"isError": True, "content": [{"type": "text", "text": "Tool not found"}]}
+                
+                response = {"jsonrpc": "2.0", "id": req_id, "result": result}
             else:
                 response = {"jsonrpc": "2.0", "id": req_id, "result": {}}
 
