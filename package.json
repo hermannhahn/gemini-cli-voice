@@ -1,6 +1,6 @@
 {
 	"name": "gemini-cli-voice",
-	"version": "1.2.12",
+	"version": "1.2.13",
 	"description": "Text-to-speech (TTS)",
 	"keywords": [
 		"TTS",
@@ -27,7 +27,7 @@
 		"typecheck:py": "MYPYPATH=src ./.venv/bin/mypy -p gemini_voice || MYPYPATH=src mypy -p gemini_voice",
 		"lint": "npm run lint:py && npm run typecheck:py",
 		"test": "npm run test:py",
-		"update:version": "npm version patch --no-git-tag-version",
+		"update:version": "npm run lint && npm version patch --no-git-tag-version",
 		"version": "node scripts/update-version.js && git add .",
 		"postversion": "git push origin main --follow-tags && npm run push:release",
 		"cleanup-releases": "node scripts/cleanup-releases.js",
