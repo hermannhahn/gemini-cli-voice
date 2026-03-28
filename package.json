@@ -1,6 +1,6 @@
 {
 	"name": "gemini-cli-voice",
-	"version": "1.2.13",
+	"version": "1.2.14",
 	"description": "Text-to-speech (TTS)",
 	"keywords": [
 		"TTS",
