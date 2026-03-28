@@ -1,6 +1,6 @@
 {
 	"name": "gemini-cli-voice",
-	"version": "1.2.14",
+	"version": "1.2.15",
 	"description": "Text-to-speech (TTS)",
 	"keywords": [
 		"TTS",
@@ -29,7 +29,7 @@
 		"test": "npm run test:py",
 		"update:version": "npm run lint && npm version patch --no-git-tag-version",
 		"version": "node scripts/update-version.js && git add .",
-		"postversion": "git push origin main --follow-tags && npm run push:release",
+		"publish:release": "git push origin main --follow-tags && npm run push:release",
 		"cleanup-releases": "node scripts/cleanup-releases.js",
 		"push:release": "node -e \"const v = require('./package.json').version; require('child_process').execSync('gh release create v' + v + ' --generate-notes', {stdio: 'inherit'})\"",
 		"update": "echo 'Y' | gemini extension update gemini-cli-voice",
