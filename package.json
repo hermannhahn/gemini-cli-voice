@@ -1,6 +1,6 @@
 {
 	"name": "gemini-cli-voice",
-	"version": "1.2.4",
+	"version": "1.2.5",
 	"description": "Text-to-speech (TTS)",
 	"keywords": [
 		"TTS",
@@ -20,13 +20,19 @@
 	"type": "extension",
 	"main": "gemini-extension.json",
 	"scripts": {
-		"lint": "pylint *.py --disable=W1309,W1510,C0301,C0114,C0115,C0116",
+		"setup:py": "python3 -m venv .venv && ./.venv/bin/pip install --upgrade pip && ./.venv/bin/pip install -e .[dev]",
+		"lint:py": "./.venv/bin/ruff check src tests || ruff check src tests",
+		"format:py": "./.venv/bin/ruff format src tests || ruff format src tests",
+		"test:py": "./.venv/bin/pytest tests || pytest tests",
+		"typecheck:py": "MYPYPATH=src ./.venv/bin/mypy -p gemini_voice || MYPYPATH=src mypy -p gemini_voice",
+		"lint": "npm run lint:py && npm run typecheck:py",
+		"test": "npm run test:py",
 		"version": "node scripts/update-version.js && git add .",
 		"postversion": "git push origin main --follow-tags && npm run push:release",
 		"cleanup-releases": "node scripts/cleanup-releases.js",
 		"push:release": "node -e \"const v = require('./package.json').version; require('child_process').execSync('gh release create v' + v + ' --generate-notes', {stdio: 'inherit'})\"",
-		"update": "gemini extension update gemini-cli-schedule",
-		"deploy": "npm run lint && npm version patch -m \"v%s\" --force && npm run cleanup-releases && npm run update"
+		"update": "gemini extension update gemini-cli-voice",
+		"deploy": "npm run lint && npm run test && npm version patch -m \"v%s\" --force && npm run cleanup-releases && npm run update"
 	},
 	"gemini-dependencies": {
 		"gemini-cli-voice": "https://github.com/hermannhahn/gemini-cli-voice"

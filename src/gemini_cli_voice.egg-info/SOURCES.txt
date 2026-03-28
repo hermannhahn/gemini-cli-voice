@@ -1,0 +1,12 @@
+README.md
+pyproject.toml
+src/gemini_cli_voice.egg-info/PKG-INFO
+src/gemini_cli_voice.egg-info/SOURCES.txt
+src/gemini_cli_voice.egg-info/dependency_links.txt
+src/gemini_cli_voice.egg-info/requires.txt
+src/gemini_cli_voice.egg-info/top_level.txt
+src/gemini_voice/config.py
+src/gemini_voice/mcp.py
+src/gemini_voice/paths.py
+src/gemini_voice/piper.py
+tests/test_logic.py

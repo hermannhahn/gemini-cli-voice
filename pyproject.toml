@@ -1,0 +1,36 @@
+[project]
+name = "gemini-cli-voice"
+version = "1.2.4"
+description = "Text-to-speech (TTS) extension for Gemini CLI using Piper"
+authors = [
+    { name = "Hermann Hahn", email = "hermannhahn@gmail.com" }
+]
+license = { text = "ISC" }
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+    "pytest>=7.0.0",
+    "mypy>=1.0.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "RET", "SIM", "PTH"]
+ignore = []
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

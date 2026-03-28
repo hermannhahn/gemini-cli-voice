@@ -1,7 +1,25 @@
-GEMINI.md
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+
+# Extension
+GEMINI.md
+config.json
+*.wav
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Editor
 .vscode/
 *.code-workspace
-node_modules/
-
+.idea/

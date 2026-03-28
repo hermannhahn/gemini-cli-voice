@@ -1,0 +1,65 @@
+Metadata-Version: 2.4
+Name: gemini-cli-voice
+Version: 1.2.4
+Summary: Text-to-speech (TTS) extension for Gemini CLI using Piper
+Author-email: Hermann Hahn <hermannhahn@gmail.com>
+License: ISC
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: ruff>=0.1.0; extra == "dev"
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"
+
+# Gemini CLI Voice Extension
+
+Esta extensão adiciona a ferramenta `speech` ao Gemini CLI, permitindo que o modelo se comunique através de áudio sintetizado utilizando o motor Piper (TTS).
+
+## Como Funciona
+
+A extensão opera como um servidor **MCP (Model Context Protocol)** nativo via `stdio`. Ela não possui dependências externas de Python, o que a torna leve e fácil de instalar em diferentes ambientes.
+
+## Requisitos do Sistema
+
+Para que a sintetização funcione, sua máquina deve ter instalado:
+1.  **Piper**: O motor de texto para fala. [Download aqui](https://github.com/rhasspy/piper).
+2.  **Aplay**: Utilitário de reprodução de áudio (padrão em sistemas Linux/ALSA).
+3.  **Modelo de Voz (.onnx)**: Um arquivo de voz compatível com o Piper.
+
+## Instalação
+
+Você pode instalar esta extensão diretamente do repositório:
+```bash
+gemini extensions install https://github.com/hermannhahn/gemini-cli-voice.git
+```
+
+## Como Adicionar Mais Vozes
+
+Você pode baixar vozes em diversos idiomas e estilos (feminina, masculina, etc.) diretamente do repositório oficial de vozes do Piper:
+
+**Link para baixar mais vozes:**  
+👉 [Hugging Face - Piper Voices](https://huggingface.co/rhasspy/piper-voices/tree/main)
+
+### Instruções:
+1.  Navegue pelas pastas de idiomas (ex: `pt/pt_BR`) no link acima.
+2.  Escolha uma voz e baixe o arquivo que termina em `.onnx` e também o seu arquivo `.json` correspondente (que deve ter o mesmo nome).
+3.  Salve esses arquivos em uma pasta no seu computador.
+4.  No Gemini CLI, configure a extensão para usar a nova voz:
+    ```bash
+    gemini extensions config gemini-cli-voice "Voice Model Path" /caminho/completo/sua-voz.onnx
+    ```
+
+## Configuração de Portabilidade (Variáveis de Ambiente)
+
+Caso prefira configurar via terminal, a extensão também aceita as seguintes variáveis de ambiente:
+```bash
+export VOICE_PIPER_PATH="/caminho/para/piper"
+export VOICE_MODEL_PATH="/caminho/para/sua-voz.onnx"
+```
+
+## Ferramentas Disponíveis
+
+### `speech(text: str)`
+Converte o texto fornecido em áudio falado e o reproduz imediatamente.
+-   **Parâmetros**:
+    -   `text` (string): O texto a ser falado pelo modelo.
