@@ -61,9 +61,9 @@ def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
         model_val = arguments["model"]
         if not model_val.endswith(".onnx"):
             model_val += ".onnx"
-            
+
         model_path = Path(model_val)
-        
+
         # 1. Tentar como caminho absoluto
         if model_path.is_absolute() and model_path.is_file():
             config["model"] = str(model_path)

@@ -50,7 +50,7 @@ def get_model_path() -> str | None:
     if relative_path.exists():
         return str(relative_path)
 
-    # 2. Se falhar, tentar apenas o nome do arquivo se o caminho contiver diretórios (prefixo redundante)
+    # 2. Se falhar, tentar apenas o nome do arquivo (prefixo redundante)
     name_only = model_path.name
     name_path = MODELS_DIR / name_only
     if name_path.exists():
