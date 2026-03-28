@@ -27,13 +27,14 @@
 		"typecheck:py": "MYPYPATH=src ./.venv/bin/mypy -p gemini_voice || MYPYPATH=src mypy -p gemini_voice",
 		"lint": "npm run lint:py && npm run typecheck:py",
 		"test": "npm run test:py",
+		"update:version": "npm version patch --no-git-tag-version",
 		"version": "node scripts/update-version.js && git add .",
 		"postversion": "git push origin main --follow-tags && npm run push:release",
 		"cleanup-releases": "node scripts/cleanup-releases.js",
 		"push:release": "node -e \"const v = require('./package.json').version; require('child_process').execSync('gh release create v' + v + ' --generate-notes', {stdio: 'inherit'})\"",
 		"update": "echo 'Y' | gemini extension update gemini-cli-voice",
 		"update:development": "git checkout development && git merge main && git push origin development",
-		"deploy": "npm run lint && npm run test && npm version patch -m \"v%s\" --force && npm run cleanup-releases && npm run update && npm run update:development"
+		"deploy": "npm run lint && npm run test && node -e \"const v = require('./package.json').version; require('child_process').execSync('git tag v' + v + ' && git push origin v' + v, {stdio: 'inherit'})\" && npm run push:release && npm run cleanup-releases && npm run update && npm run update:development"
 	},
 	"gemini-dependencies": {
 		"gemini-cli-voice": "https://github.com/hermannhahn/gemini-cli-voice"
