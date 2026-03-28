@@ -20,9 +20,16 @@ def run_speech_task(
 
     # Prepara o ambiente para carregar bibliotecas locais
     env = os.environ.copy()
+    espeak_data = None
     if system == "linux":
         linux_bin_dir = BIN_DIR / "linux"
         env["LD_LIBRARY_PATH"] = f"{linux_bin_dir}:{env.get('LD_LIBRARY_PATH', '')}"
+        espeak_data = linux_bin_dir / "espeak-ng-data"
+        # Garante permissão de execução no Linux
+        if Path(piper_exe).exists():
+            os.chmod(piper_exe, 0o755)
+    elif system == "windows":
+        espeak_data = BIN_DIR / "windows" / "espeak-ng-data"
 
     # Cria arquivo temporário para o WAV
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
@@ -40,6 +47,11 @@ def run_speech_task(
             "--output_file",
             str(temp_wav),
         ]
+        
+        # Adiciona o caminho do espeak-ng-data se disponível
+        if espeak_data and espeak_data.exists():
+            piper_cmd.extend(["--espeak_data", str(espeak_data)])
+
         with subprocess.Popen(
             piper_cmd,
             stdin=subprocess.PIPE,
@@ -50,9 +62,12 @@ def run_speech_task(
             p.communicate(input=text.encode("utf-8"))
 
         if system == "linux":
-            aplay_exe = get_bin_path("aplay")
+            # Tenta primeiro o aplay do sistema, depois o local
+            aplay_exe = shutil.which("aplay")
             if not aplay_exe:
-                aplay_exe = shutil.which("aplay")
+                aplay_exe = get_bin_path("aplay")
+                if aplay_exe:
+                    os.chmod(aplay_exe, 0o755)
 
             if aplay_exe:
                 # 2. Toca o WAV de forma síncrona
@@ -61,6 +76,7 @@ def run_speech_task(
                     check=False,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
+                    env=env, # Passa env para o aplay local carregar bibliotecas se necessário
                 )
 
         elif system == "windows":
