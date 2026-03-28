@@ -1,6 +1,6 @@
 {
   "name": "gemini-cli-voice",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "Adiciona sintetização de voz (TTS) ao Gemini CLI usando Piper",
   "mcpServers": {
     "voice": {

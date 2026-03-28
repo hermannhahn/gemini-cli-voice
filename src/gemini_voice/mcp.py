@@ -7,7 +7,7 @@ from gemini_voice.config import load_config, save_config
 from gemini_voice.paths import MODELS_DIR, get_bin_path, get_model_path
 from gemini_voice.piper import run_speech_task
 
-VERSION = "1.2.9"
+VERSION = "1.2.10"
 
 
 def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
