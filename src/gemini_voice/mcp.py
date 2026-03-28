@@ -7,7 +7,7 @@ from gemini_voice.config import load_config, save_config
 from gemini_voice.paths import MODELS_DIR, get_bin_path, get_model_path
 from gemini_voice.piper import run_speech_task
 
-VERSION = "1.2.8"
+VERSION = "1.2.9"
 
 
 def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -124,7 +124,7 @@ def main() -> None:
     """Loop principal do servidor MCP."""
     # Redireciona stderr para evitar que mensagens de bibliotecas quebrem o stdout
     import os
-    sys.stderr = open(os.devnull, 'w')
+    sys.stderr = Path(os.devnull).open("w")  # noqa: SIM115
 
     while True:
         try:
