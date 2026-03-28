@@ -140,7 +140,7 @@ def main() -> None:
             req_id = request.get("id")
 
             # Notificações não têm ID e não devem ser respondidas
-            if req_id is None and not method == "initialize":
+            if req_id is None and method != "initialize":
                 continue
 
             response: dict[str, Any] = {"jsonrpc": "2.0", "id": req_id}
