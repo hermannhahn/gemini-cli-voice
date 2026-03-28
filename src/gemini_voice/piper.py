@@ -43,6 +43,7 @@ def run_speech_task(
         with subprocess.Popen(
             piper_cmd,
             stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             env=env,
         ) as p:
@@ -58,6 +59,7 @@ def run_speech_task(
                 subprocess.run(
                     [aplay_exe, str(temp_wav)],
                     check=False,
+                    stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
 
@@ -68,6 +70,7 @@ def run_speech_task(
                 ps_cmd,
                 shell=True,
                 check=False,
+                stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
 

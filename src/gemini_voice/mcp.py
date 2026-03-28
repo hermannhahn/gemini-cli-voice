@@ -123,7 +123,8 @@ def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
 def main() -> None:
     """Loop principal do servidor MCP."""
     # Redireciona stderr para evitar que mensagens de bibliotecas quebrem o stdout
-    # sys.stderr = open(os.devnull, 'w')
+    import os
+    sys.stderr = open(os.devnull, 'w')
 
     while True:
         try:
