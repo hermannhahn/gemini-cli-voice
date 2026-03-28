@@ -26,8 +26,9 @@ def run_speech_task(
         env["LD_LIBRARY_PATH"] = f"{linux_bin_dir}:{env.get('LD_LIBRARY_PATH', '')}"
         espeak_data = linux_bin_dir / "espeak-ng-data"
         # Garante permissão de execução no Linux
-        if Path(piper_exe).exists():
-            os.chmod(piper_exe, 0o755)
+        piper_path = Path(piper_exe)
+        if piper_path.exists():
+            piper_path.chmod(0o755)
     elif system == "windows":
         espeak_data = BIN_DIR / "windows" / "espeak-ng-data"
 
@@ -47,7 +48,7 @@ def run_speech_task(
             "--output_file",
             str(temp_wav),
         ]
-        
+
         # Adiciona o caminho do espeak-ng-data se disponível
         if espeak_data and espeak_data.exists():
             piper_cmd.extend(["--espeak_data", str(espeak_data)])
@@ -67,7 +68,7 @@ def run_speech_task(
             if not aplay_exe:
                 aplay_exe = get_bin_path("aplay")
                 if aplay_exe:
-                    os.chmod(aplay_exe, 0o755)
+                    Path(aplay_exe).chmod(0o755)
 
             if aplay_exe:
                 # 2. Toca o WAV de forma síncrona
