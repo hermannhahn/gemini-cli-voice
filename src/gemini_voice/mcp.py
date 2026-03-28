@@ -122,79 +122,81 @@ def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> None:
     """Loop principal do servidor MCP."""
+    # Redireciona stderr para evitar que mensagens de bibliotecas quebrem o stdout
+    # sys.stderr = open(os.devnull, 'w')
+
     while True:
         try:
             line = sys.stdin.readline()
             if not line:
                 break
 
-            request = json.loads(line)
+            try:
+                request = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
             method = request.get("method")
             req_id = request.get("id")
 
-            if method == "initialize":
-                response = {
-                    "jsonrpc": "2.0",
-                    "id": req_id,
-                    "result": {
-                        "protocolVersion": "2024-11-05",
-                        "capabilities": {"tools": {}},
-                        "serverInfo": {"name": "gemini-cli-voice-mcp", "version": VERSION},
-                    },
-                }
-            elif method == "notifications/initialized":
+            # Notificações não têm ID e não devem ser respondidas
+            if req_id is None and not method == "initialize":
                 continue
 
+            response: dict[str, Any] = {"jsonrpc": "2.0", "id": req_id}
+
+            if method == "initialize":
+                response["result"] = {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {"tools": {}},
+                    "serverInfo": {"name": "gemini-cli-voice-mcp", "version": VERSION},
+                }
             elif method == "tools/list":
-                response = {
-                    "jsonrpc": "2.0",
-                    "id": req_id,
-                    "result": {
-                        "tools": [
-                            {
-                                "name": "speech",
-                                "description": (
-                                    "Converts text to spoken audio and blocks until finished. "
-                                    "MANDATORY: Use model's language."
-                                ),
-                                "inputSchema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "text": {"type": "string", "description": "Text to speak."}
-                                    },
-                                    "required": ["text"],
+                response["result"] = {
+                    "tools": [
+                        {
+                            "name": "speech",
+                            "description": (
+                                "Converts text to spoken audio and blocks until finished. "
+                                "MANDATORY: Use model's language."
+                            ),
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "text": {"type": "string", "description": "Text to speak."}
                                 },
+                                "required": ["text"],
                             },
-                            {
-                                "name": "model",
-                                "description": "Change voice model (.onnx).",
-                                "inputSchema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "model": {
-                                            "type": "string",
-                                            "description": "Voice model file.",
-                                        }
-                                    },
-                                    "required": ["model"],
+                        },
+                        {
+                            "name": "model",
+                            "description": "Change voice model (.onnx).",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "model": {
+                                        "type": "string",
+                                        "description": "Voice model file.",
+                                    }
                                 },
+                                "required": ["model"],
                             },
-                            {
-                                "name": "pitch",
-                                "description": "Change voice speed (pitch).",
-                                "inputSchema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "pitch": {
-                                            "type": "number",
-                                            "description": "Speed multiplier.",
-                                        }
-                                    },
-                                    "required": ["pitch"],
+                        },
+                        {
+                            "name": "pitch",
+                            "description": "Change voice speed (pitch).",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "pitch": {
+                                        "type": "number",
+                                        "description": "Speed multiplier.",
+                                    }
                                 },
+                                "required": ["pitch"],
                             },
-                        ]
-                    },
+                        },
+                    ]
                 }
             elif method == "tools/call":
                 tool_name = request.get("params", {}).get("name")
@@ -207,17 +209,19 @@ def main() -> None:
                 else:
                     result = {
                         "isError": True,
-                        "content": [{"type": "text", "text": "Tool not found"}],
+                        "content": [{"type": "text", "text": f"Tool '{tool_name}' not found"}],
                     }
 
-                response = {"jsonrpc": "2.0", "id": req_id, "result": result}
+                response["result"] = result
             else:
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {}}
+                # Para métodos desconhecidos que exigem resposta
+                response["error"] = {"code": -32601, "message": f"Method '{method}' not found"}
 
             sys.stdout.write(json.dumps(response) + "\n")
             sys.stdout.flush()
 
         except EOFError:
             break
-        except (json.JSONDecodeError, KeyError, ValueError):
+        except Exception:
+            # Em caso de erro catastrófico, tenta não quebrar o loop silenciosamente
             continue
