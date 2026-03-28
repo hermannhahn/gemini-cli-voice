@@ -33,8 +33,7 @@
 		"cleanup-releases": "node scripts/cleanup-releases.js",
 		"push:release": "node -e \"const v = require('./package.json').version; require('child_process').execSync('gh release create v' + v + ' --generate-notes', {stdio: 'inherit'})\"",
 		"update": "echo 'Y' | gemini extension update gemini-cli-voice",
-		"update:development": "git checkout development && git merge main && git push origin development",
-		"deploy": "npm run lint && npm run test && node -e \"const v = require('./package.json').version; require('child_process').execSync('git tag v' + v + ' && git push origin v' + v, {stdio: 'inherit'})\" && npm run push:release && npm run cleanup-releases && npm run update && npm run update:development"
+		"deploy": "git checkout main && git pull origin main && git merge development && git push origin main && npm run lint && npm run test && node -e \"const v = require('./package.json').version; require('child_process').execSync('git tag v' + v + ' && git push origin v' + v, {stdio: 'inherit'})\" && npm run push:release && npm run cleanup-releases && npm run update && git checkout development"
 	},
 	"gemini-dependencies": {
 		"gemini-cli-voice": "https://github.com/hermannhahn/gemini-cli-voice"
