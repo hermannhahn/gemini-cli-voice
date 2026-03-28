@@ -31,7 +31,7 @@
 		"postversion": "git push origin main --follow-tags && npm run push:release",
 		"cleanup-releases": "node scripts/cleanup-releases.js",
 		"push:release": "node -e \"const v = require('./package.json').version; require('child_process').execSync('gh release create v' + v + ' --generate-notes', {stdio: 'inherit'})\"",
-		"update": "gemini extension update gemini-cli-voice",
+		"update": "echo 'Y' | gemini extension update gemini-cli-voice",
 		"deploy": "npm run lint && npm run test && npm version patch -m \"v%s\" --force && npm run cleanup-releases && npm run update"
 	},
 	"gemini-dependencies": {
