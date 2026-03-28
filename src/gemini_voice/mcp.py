@@ -7,7 +7,7 @@ from gemini_voice.config import load_config, save_config
 from gemini_voice.paths import MODELS_DIR, get_bin_path, get_model_path
 from gemini_voice.piper import run_speech_task
 
-VERSION = "1.2.4"
+VERSION = "1.2.5"
 
 
 def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -59,15 +59,27 @@ def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
 
     if "model" in arguments:
         model_val = arguments["model"]
+        if not model_val.endswith(".onnx"):
+            model_val += ".onnx"
+            
         model_path = Path(model_val)
-        if model_path.is_absolute() and model_path.is_file() and model_val.endswith(".onnx"):
-            config["model"] = model_val
+        
+        # 1. Tentar como caminho absoluto
+        if model_path.is_absolute() and model_path.is_file():
+            config["model"] = str(model_path)
             updated = True
         else:
-            if not model_val.endswith(".onnx"):
-                model_val += ".onnx"
-            if (MODELS_DIR / model_val).exists():
+            # 2. Tentar resolver contra MODELS_DIR (removendo prefixo redundante se necessário)
+            name_only = model_path.name
+            if (MODELS_DIR / name_only).exists():
+                config["model"] = name_only
+                updated = True
+            elif (MODELS_DIR / model_val).exists():
                 config["model"] = model_val
+                updated = True
+            # 3. Tentar como caminho relativo ao CWD atual (se for um caminho com diretórios)
+            elif model_path.exists() and model_path.is_file():
+                config["model"] = str(model_path.resolve())
                 updated = True
             else:
                 return {

@@ -45,10 +45,18 @@ def get_model_path() -> str | None:
     if model_path.is_absolute() and model_path.exists():
         return str(model_path)
 
+    # 1. Tentar diretamente como fornecido em MODELS_DIR
     relative_path = MODELS_DIR / model_val
     if relative_path.exists():
         return str(relative_path)
 
+    # 2. Se falhar, tentar apenas o nome do arquivo se o caminho contiver diretórios (prefixo redundante)
+    name_only = model_path.name
+    name_path = MODELS_DIR / name_only
+    if name_path.exists():
+        return str(name_path)
+
+    # 3. Fallback para o modelo padrão se o configurado falhar
     fallback_default = MODELS_DIR / DEFAULT_MODEL
     if fallback_default.exists():
         return str(fallback_default)
