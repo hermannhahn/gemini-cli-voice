@@ -21,14 +21,38 @@ if (fs.existsSync(geminiExtensionPath)) {
 	console.log("- gemini-extension.json updated.");
 }
 
-// Update tool_code.py serverInfo version
-const toolCodePath = path.join(__dirname, "../tool_code.py");
-if (fs.existsSync(toolCodePath)) {
-	let content = fs.readFileSync(toolCodePath, "utf8");
+// Update pyproject.toml
+const pyprojectPath = path.join(__dirname, "../pyproject.toml");
+if (fs.existsSync(pyprojectPath)) {
+	let content = fs.readFileSync(pyprojectPath, "utf8");
 	content = content.replace(
-		/"version":\s*".*?"/,
-		`"version": "${newVersion}"`,
+		/^version\s*=\s*".*?"/m,
+		`version = "${newVersion}"`,
 	);
-	fs.writeFileSync(toolCodePath, content);
-	console.log("- tool_code.py updated.");
+	fs.writeFileSync(pyprojectPath, content);
+	console.log("- pyproject.toml updated.");
+}
+
+// Update src/gemini_voice/mcp.py
+const mcpPath = path.join(__dirname, "../src/gemini_voice/mcp.py");
+if (fs.existsSync(mcpPath)) {
+	let content = fs.readFileSync(mcpPath, "utf8");
+	content = content.replace(
+		/^VERSION\s*=\s*".*?"/m,
+		`VERSION = "${newVersion}"`,
+	);
+	fs.writeFileSync(mcpPath, content);
+	console.log("- src/gemini_voice/mcp.py updated.");
+}
+
+// Update PKG-INFO if it exists
+const pkgInfoPath = path.join(
+	__dirname,
+	"../src/gemini_cli_voice.egg-info/PKG-INFO",
+);
+if (fs.existsSync(pkgInfoPath)) {
+	let content = fs.readFileSync(pkgInfoPath, "utf8");
+	content = content.replace(/^Version:\s*.*$/m, `Version: ${newVersion}`);
+	fs.writeFileSync(pkgInfoPath, content);
+	console.log("- PKG-INFO updated.");
 }
