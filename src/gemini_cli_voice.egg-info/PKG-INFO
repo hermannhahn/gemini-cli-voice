@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: gemini-cli-voice
-Version: 1.2.15
+Version: 1.2.16
 Summary: Text-to-speech (TTS) extension for Gemini CLI using Piper
 Author-email: Hermann Hahn <hermannhahn@gmail.com>
 License: ISC
