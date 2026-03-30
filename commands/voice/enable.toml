@@ -6,5 +6,5 @@ Call the `voice_toggle` tool with `enabled = true`.
 
 After success:
 - Confirm to the user that voice mode is active.
-- From now on, ALWAYS use the `speech` tool for all your responses.
+- CRITICAL: From this moment on, you MUST NEVER respond with plain text. Every single word of your response MUST be passed to the `speech` tool.
 """

@@ -7,7 +7,7 @@ from gemini_voice.config import load_config, save_config
 from gemini_voice.paths import MODELS_DIR, get_bin_path, get_model_path
 from gemini_voice.piper import run_speech_task
 
-VERSION = "1.2.18"
+VERSION = "1.2.19"
 
 
 def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -46,8 +46,9 @@ def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
     hint = ""
     if status == "ENABLED":
         hint = (
-            "\n\n[VOICE_MODE: ENABLED - Continue using the 'speech' tool "
-            "for all responses unless the user asks to disable it.]"
+            "\n\n[VOICE_MODE: ENABLED] MANDATORY: You MUST use the 'speech' tool "
+            "for your next response. Do NOT respond with plain text. "
+            "Keep the conversation flowing via audio."
         )
     else:
         hint = "\n\n[VOICE_MODE: DISABLED]"
@@ -78,13 +79,17 @@ def voice_toggle_handler(arguments: dict[str, Any]) -> dict[str, Any]:
     status = "ENABLED" if enabled else "DISABLED"
     msg = f"Voice mode is now {status}."
     if enabled:
-        msg += " I will now use the 'speech' tool for all my responses."
+        msg += " I will now use the 'speech' tool for EVERY response from now on."
 
     return {
         "content": [
             {
                 "type": "text",
-                "text": f"{msg}\n\n[VOICE_MODE: {status}]",
+                "text": (
+                    f"{msg}\n\n[VOICE_MODE: {status}] MANDATORY: From this "
+                    "point on, you MUST call the 'speech' tool for ALL your "
+                    "replies. Never reply with plain text."
+                ),
             }
         ]
     }

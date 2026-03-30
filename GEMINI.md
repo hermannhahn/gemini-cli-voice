@@ -1,5 +1,6 @@
 ## Voice Interaction Rules
 
-- **Automatic Voice Mode:** If you detect the hint `[VOICE_MODE: ENABLED]` in the conversation history or if the user has recently called `/voice:enable`, you MUST use the `speech` tool for ALL your subsequent responses.
-- **Text-only Mode:** If you detect the hint `[VOICE_MODE: DISABLED]` or if the user has recently called `/voice:disable`, respond only with text unless explicitly asked to use the `speech` tool.
-- **Language Consistency:** Always use the language of the voice model for speech generation (usually the same as the user's interaction language).
+- **MANDATORY Voice Response:** If `[VOICE_MODE: ENABLED]` is present in the context or if the user recently activated voice mode (via `/voice:enable`), YOU MUST NEVER respond with plain text. Every single response you provide MUST be wrapped in the `speech` tool. This is non-negotiable for the voice interaction flow.
+- **Continuous Mode:** Once voice mode is active, do not stop using the `speech` tool until you explicitly see `[VOICE_MODE: DISABLED]` or a clear command to deactivate it.
+- **Context Salience:** Always look for the `[VOICE_MODE: ...]` marker in the last tool output to determine your current response format.
+- **Language Consistency:** Always use the language of the voice model for speech generation.
