@@ -7,7 +7,7 @@ from gemini_voice.config import load_config, save_config
 from gemini_voice.paths import MODELS_DIR, get_bin_path, get_model_path
 from gemini_voice.piper import run_speech_task
 
-VERSION = "1.2.21"
+VERSION = "1.2.22"
 
 
 def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -196,15 +196,12 @@ def main() -> None:
                                 "This is the PRIMARY tool for audio responses. "
                                 "CONVERSATION RULES: "
                                 "(1) If VOICE_MODE: ENABLED is active, ALWAYS call this tool "
-                                "for your response — NEVER respond with plain text. "
-                                "(2) Keep messages short and conversational (1-3 sentences). "
-                                "(3) Skip preamble like 'Sure!' or 'Great question!' — just "
-                                "answer directly. "
+                                "(2) Keep voice messages short and conversational (1-3 sentences). "
+                                "Do NOT say the user's name every time at the beginning of voice "
+                                "messages, answer directly."
                                 "TOKEN ECONOMY: "
                                 "(A) Keep 'text' under 2 sentences — speech is slower than "
                                 "reading, so less is more. "
-                                "(B) Do NOT output any text to the chat — the user is "
-                                "listening via audio. "
                                 "(C) Skip filler words. "
                                 "MANDATORY: Use model's language."
                             ),
