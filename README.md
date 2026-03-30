@@ -42,37 +42,57 @@ gemini extensions install https://github.com/hermannhahn/gemini-cli-voice.git
 
 ## Available Commands
 
-- `/voice:enable`: Enables automatic voice mode. The model will use voice for all responses.
-- `/voice:disable`: Disables automatic voice mode. The model will revert to text-only responses.
-- `/voice:model`: Changes the voice model (.onnx).
-- `/voice:pitch`: Changes the voice speed/pitch (multiplier).
+### `/voice:enable`
+Enables automatic voice response mode. From this moment on, the model MUST respond via the `speech` tool for all interactions.
+
+### `/voice:disable`
+Disables automatic voice response mode. The model will revert to text-only responses unless the `speech` tool is explicitly requested.
+
+### `/voice:model [model_name]`
+Changes the voice model (.onnx) used.
+- **Without arguments**: Shows the current model and presents a list of available models for interactive selection (using `ask_user`).
+- **With argument (name or path)**: Attempts to configure the specified model directly.
+- **Supported models**: Includes voices in English, Portuguese, Spanish, French, German, Chinese, and Russian.
+
+### `/voice:pitch [value]`
+Changes the voice speed/pitch multiplier.
+- **Without arguments**: Shows the current pitch and requests a new value (e.g., between 0.5 and 3.0) via an interactive interface.
+- **With argument (number)**: Configures the pitch multiplier directly.
 
 ## Available Tools
 
-### `speech(text: str)`
-Converts the provided text to spoken audio and plays it immediately. If voice mode is active (`VOICE_MODE: ENABLED`), the model will call this tool automatically.
+### `mcp_voice_speech(text: str)`
+Converts the provided text to spoken audio and plays it immediately. This is the primary tool for voice responses.
+- **Conversation Rules**: If voice mode is active, the model should use only this tool, keep messages short (1-3 sentences), and skip unnecessary preambles.
 
-### `voice_toggle(enabled: bool)`
-Enables or disables automatic voice response mode.
+### `mcp_voice_voice_toggle(enabled: bool)`
+Internally enables or disables automatic voice response mode.
 
-### `model(model: str)`
-Changes the voice model in real-time.
+### `mcp_voice_model(model: str)`
+Changes the voice model (.onnx) in real-time, validating the path or filename in the `models/` folder.
 
-### `pitch(pitch: float)`
-Changes the voice speed/pitch (multiplier).
+### `mcp_voice_pitch(pitch: float)`
+Changes the voice speed/pitch multiplier in real-time.
 
 ## How to Add More Voices
 
-Download compatible Piper voices:  
-👉 [Hugging Face - Piper Voices](https://huggingface.co/rhasspy/piper-voices/tree/main)
+You can expand your voice library by downloading compatible Piper models (.onnx and .json):  
+👉 **[Hugging Face - Piper Voices](https://huggingface.co/rhasspy/piper-voices/tree/main)**
 
-Save the `.onnx` and `.json` files in the `models/` folder or configure the path via:
-```bash
-gemini extensions config gemini-cli-voice "Voice Model Path" /full/path/to/your-voice.onnx
-```
+### Configuration Methods
 
-Or via environment variables:
-```bash
-export VOICE_PIPER_PATH="/path/to/piper"
-export VOICE_MODEL_PATH="/path/to/your-voice.onnx"
-```
+1. **Using a Custom Folder (Recommended)**:  
+   Download your preferred voices to any folder on your system and point the extension to it:
+   ```bash
+   /voice:model /path/to/your/custom/models/folder/
+   ```
+   The extension will list all `.onnx` files in that folder for you to choose from.
+
+2. **Using a Direct File Path**:  
+   If you want to switch to a specific model directly:
+   ```bash
+   /voice:model /path/to/your-voice.onnx
+   ```
+
+3. **Manual Placement**:  
+   Save both `.onnx` and `.json` files in the `models/` folder of this extension. They will then appear in the interactive selection list when you run `/voice:model` without arguments.

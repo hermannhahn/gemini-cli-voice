@@ -23,3 +23,6 @@ npm-debug.log*
 .vscode/
 *.code-workspace
 .idea/
+
+# Custom
+GEMINI.md
