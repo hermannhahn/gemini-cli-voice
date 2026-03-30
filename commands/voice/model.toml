@@ -1,35 +1,35 @@
-description = "Altera o modelo de voz (.onnx)"
+description = "Change voice model (.onnx)"
 prompt = """
-O usuário solicitou a troca do modelo de voz através do comando `/voice:model`.
+The user requested to change the voice model via the `/voice:model` command.
 
-O argumento fornecido pelo usuário é: {{args}}
+The argument provided by the user is: {{args}}
 
-**OPÇÕES DISPONÍVEIS:**
-- en_US-bryce-medium.onnx (Inglês US - Male Medium - Padrão)
-- en_US-ryan-low.onnx (Inglês US - Male Low)
-- en_US-amy-medium.onnx (Inglês US - Female Medium)
-- pt_BR-faber-medium.onnx (Português Brasil - Male Medium)
-- es_ES-sharvard-medium.onnx (Espanhol - Male Medium)
-- fr_FR-siwis-medium.onnx (Francês - Female Medium)
-- de_DE-thorsten-medium.onnx (Alemão - Male Medium)
-- zh_CN-huayan-medium.onnx (Chinês Mandarin - Female Medium)
-- ru_RU-irina-medium.onnx (Russo - Female Medium)
+**AVAILABLE OPTIONS:**
+- en_US-bryce-medium.onnx (English US - Male Medium - Default)
+- en_US-ryan-low.onnx (English US - Male Low)
+- en_US-amy-medium.onnx (English US - Female Medium)
+- pt_BR-faber-medium.onnx (Portuguese Brazil - Male Medium)
+- es_ES-sharvard-medium.onnx (Spanish - Male Medium)
+- fr_FR-siwis-medium.onnx (French - Female Medium)
+- de_DE-thorsten-medium.onnx (German - Male Medium)
+- zh_CN-huayan-medium.onnx (Chinese Mandarin - Female Medium)
+- ru_RU-irina-medium.onnx (Russian - Female Medium)
 
-**PROTOCOLO DE DECISÃO:**
+**DECISION PROTOCOL:**
 
-1. **SE NÃO HOUVER ARGUMENTO ({{args}} vazio):**
-   - Informe ao usuário o modelo atual.
-   - Apresente as opções acima usando `ask_user` (tipo "choice").
-   - **IMPORTANTE:** Informe que ele pode baixar mais modelos em: https://huggingface.co/rhasspy/piper-voices/
+1. **IF NO ARGUMENT ({{args}} is empty):**
+   - Inform the user of the current model.
+   - Present the options above using `ask_user` (type "choice").
+   - **IMPORTANT:** Inform that they can download more models at: https://huggingface.co/rhasspy/piper-voices/
 
-2. **SE O ARGUMENTO FOR UM CAMINHO PARA UM DIRETÓRIO:**
-   - Use `ls -1 {{args}}/*.onnx` para listar os modelos.
-   - Apresente para escolha via `ask_user`.
+2. **IF ARGUMENT IS A DIRECTORY PATH:**
+   - Use `ls -1 {{args}}/*.onnx` to list models.
+   - Present for selection via `ask_user`.
 
-3. **SE O ARGUMENTO FOR UM NOME DE ARQUIVO OU CAMINHO ABSOLUTO:**
-   - Chame a ferramenta `mcp_voice_model` passando o valor.
+3. **IF ARGUMENT IS A FILENAME OR ABSOLUTE PATH:**
+   - Call the `mcp_voice_model` tool passing the value.
 
-4. **APÓS SUCESSO:**
-   - Chame IMEDIATAMENTE `mcp_voice_speech` com o texto: "Modelo configurado. Testando agora."
-   - Informe a mudança no chat.
+4. **AFTER SUCCESS:**
+   - IMMEDIATELY call `mcp_voice_speech` with the text: "Model configured. Testing now."
+   - Inform the change in chat.
 """

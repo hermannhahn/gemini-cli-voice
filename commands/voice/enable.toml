@@ -1,10 +1,10 @@
-description = "Habilita o modo de resposta automática por voz"
+description = "Enable automatic voice response mode"
 prompt = """
-O usuário solicitou habilitar o modo de voz através do comando `/voice:enable`.
+The user requested to enable voice mode via the `/voice:enable` command.
 
-Chame a ferramenta `voice_toggle` passando `enabled = true`.
+Call the `voice_toggle` tool with `enabled = true`.
 
-Após o sucesso:
-- Confirme para o usuário que o modo de voz está ativo.
-- A partir de agora, use SEMPRE a ferramenta `speech` para todas as suas respostas.
+After success:
+- Confirm to the user that voice mode is active.
+- From now on, ALWAYS use the `speech` tool for all your responses.
 """
