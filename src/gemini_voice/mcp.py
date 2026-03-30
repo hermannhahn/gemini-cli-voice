@@ -7,7 +7,7 @@ from gemini_voice.config import load_config, save_config
 from gemini_voice.paths import MODELS_DIR, get_bin_path, get_model_path
 from gemini_voice.piper import run_speech_task
 
-VERSION = "1.2.19"
+VERSION = "1.2.20"
 
 
 def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -190,10 +190,18 @@ def main() -> None:
             response: dict[str, Any] = {"jsonrpc": "2.0", "id": req_id}
 
             if method == "initialize":
+                config = load_config()
+                instructions = ""
+                if config.get("enabled", False):
+                    instructions = (
+                        "VOICE MODE IS ENABLED. For every single response, "
+                        "you MUST use the 'speech' tool. Do NOT output plain text."
+                    )
                 response["result"] = {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {}},
                     "serverInfo": {"name": "gemini-cli-voice-mcp", "version": VERSION},
+                    "instructions": instructions,
                 }
             elif method == "tools/list":
                 response["result"] = {
@@ -202,9 +210,20 @@ def main() -> None:
                             "name": "speech",
                             "description": (
                                 "Converts text to spoken audio and blocks until finished. "
-                                "MANDATORY: Use model's language. "
-                                "If VOICE_MODE: ENABLED is active, ALWAYS call this "
-                                "tool for your response."
+                                "This is the PRIMARY tool for audio responses. "
+                                "CONVERSATION RULES: "
+                                "(1) If VOICE_MODE: ENABLED is active, ALWAYS call this tool "
+                                "for your response — NEVER respond with plain text. "
+                                "(2) Keep messages short and conversational (1-3 sentences). "
+                                "(3) Skip preamble like 'Sure!' or 'Great question!' — just "
+                                "answer directly. "
+                                "TOKEN ECONOMY: "
+                                "(A) Keep 'text' under 2 sentences — speech is slower than "
+                                "reading, so less is more. "
+                                "(B) Do NOT output any text to the chat — the user is "
+                                "listening via audio. "
+                                "(C) Skip filler words. "
+                                "MANDATORY: Use model's language."
                             ),
                             "inputSchema": {
                                 "type": "object",
