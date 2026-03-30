@@ -9,8 +9,8 @@ BIN_DIR = BASE_DIR / "bin"
 
 
 def get_bin_path(bin_name: str) -> str | None:
-    """Retorna o caminho do binário para o sistema operacional atual."""
-    # Prioridade para variável de ambiente
+    """Returns the binary path for the current operating system."""
+    # Priority for environment variable
     if bin_name == "piper":
         env_path = os.environ.get("VOICE_PIPER_PATH")
         if env_path and Path(env_path).exists():
@@ -32,8 +32,8 @@ def get_bin_path(bin_name: str) -> str | None:
 
 
 def get_model_path() -> str | None:
-    """Retorna o caminho do modelo de voz .onnx."""
-    # Prioridade para variável de ambiente
+    """Returns the path to the .onnx voice model."""
+    # Priority for environment variable
     env_path = os.environ.get("VOICE_MODEL_PATH")
     if env_path and Path(env_path).exists():
         return env_path
@@ -45,24 +45,24 @@ def get_model_path() -> str | None:
     if model_path.is_absolute() and model_path.exists():
         return str(model_path)
 
-    # 1. Tentar diretamente como fornecido em MODELS_DIR
+    # 1. Try directly as provided in MODELS_DIR
     relative_path = MODELS_DIR / model_val
     if relative_path.exists():
         return str(relative_path)
 
-    # 2. Se falhar, tentar apenas o nome do arquivo (prefixo redundante)
+    # 2. If it fails, try only the file name (redundant prefix)
     name_only = model_path.name
     name_path = MODELS_DIR / name_only
     if name_path.exists():
         return str(name_path)
 
-    # 3. Fallback para o modelo padrão se o configurado falhar
+    # 3. Fallback to the default model if the configured one fails
     fallback_default = MODELS_DIR / DEFAULT_MODEL
     if fallback_default.exists():
         return str(fallback_default)
 
     if MODELS_DIR.exists():
-        # Busca o primeiro arquivo .onnx disponível
+        # Search for the first available .onnx file
         for f in sorted(MODELS_DIR.iterdir()):
             if f.suffix == ".onnx":
                 return str(f)

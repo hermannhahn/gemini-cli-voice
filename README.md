@@ -1,79 +1,78 @@
 # Gemini CLI Voice Extension
 
-Esta extensão adiciona a ferramenta `speech` ao Gemini CLI, permitindo que o modelo se comunique através de áudio sintetizado utilizando o motor Piper (TTS).
+This extension adds the `speech` tool to Gemini CLI, allowing the model to communicate via synthesized audio using the Piper (TTS) engine.
 
-## Arquitetura e Estrutura Profissional
+## Professional Architecture and Structure
 
-O projeto segue padrões modernos de desenvolvimento híbrido (Node.js e Python):
+The project follows modern hybrid development standards (Node.js and Python):
 
-- **Modularização**: Lógica separada em pacotes Python em `src/gemini_voice/`.
-- **Tipagem Estática**: Uso extensivo de *type hints* e validação com `mypy`.
-- **Linting & Formatação**: Padronizado com `ruff` para máxima velocidade e consistência.
-- **Testes**: Suíte de testes automatizada com `pytest`.
-- **Gerenciamento de Dependências**: Ambiente virtual Python isolado gerenciado via scripts `npm`.
+- **Modularization**: Logic separated into Python packages in `src/gemini_voice/`.
+- **Static Typing**: Extensive use of *type hints* and validation with `mypy`.
+- **Linting & Formatting**: Standardized with `ruff` for maximum speed and consistency.
+- **Testing**: Automated test suite with `pytest`.
+- **Dependency Management**: Isolated Python virtual environment managed via `npm` scripts.
 
-## Requisitos do Sistema
+## System Requirements
 
 1.  **Python 3.10+**
 2.  **Node.js & npm**
-3.  **Aplay** (Linux) ou **PowerShell** (Windows) para reprodução de áudio.
+3.  **Aplay** (Linux) or **PowerShell** (Windows) for audio playback.
 
-## Instalação e Configuração
+## Installation and Setup
 
-Para configurar o ambiente de desenvolvimento:
+To set up the development environment:
 ```bash
 npm install
 npm run setup:py
 ```
 
-Isso criará um ambiente virtual `.venv` e instalará todas as ferramentas de desenvolvimento.
+This will create a `.venv` virtual environment and install all development tools.
 
-## Instalação no Gemini CLI
+## Installation in Gemini CLI
 
 ```bash
 gemini extensions install https://github.com/hermannhahn/gemini-cli-voice.git
 ```
 
-## Desenvolvimento
+## Development
 
-- **Linting e Tipos**: `npm run lint`
-- **Testes**: `npm run test`
-- **Formatação Automática**: `npm run format:py`
+- **Linting and Types**: `npm run lint`
+- **Tests**: `npm run test`
+- **Automatic Formatting**: `npm run format:py`
 
-## Como Adicionar Mais Vozes
+## Available Commands
 
-Baixe vozes compatíveis do Piper:  
-👉 [Hugging Face - Piper Voices](https://huggingface.co/rhasspy/piper-voices/tree/main)
+- `/voice:enable`: Enables automatic voice mode. The model will use voice for all responses.
+- `/voice:disable`: Disables automatic voice mode. The model will revert to text-only responses.
+- `/voice:model`: Changes the voice model (.onnx).
+- `/voice:pitch`: Changes the voice speed/pitch (multiplier).
 
-Salve os arquivos `.onnx` e `.json` na pasta `models/` ou configure o caminho via:
-```bash
-gemini extensions config gemini-cli-voice "Voice Model Path" /caminho/completo/sua-voz.onnx
-```
-
-Ou via variáveis de ambiente:
-```bash
-export VOICE_PIPER_PATH="/caminho/para/piper"
-export VOICE_MODEL_PATH="/caminho/para/sua-voz.onnx"
-## Comandos Disponíveis
-
-- `/voice:enable`: Ativa o modo de voz automático. O modelo passará a usar a voz em todas as respostas.
-- `/voice:disable`: Desativa o modo de voz automático. O modelo voltará a responder apenas por texto.
-- `/voice:model`: Altera o modelo de voz (.onnx).
-- `/voice:pitch`: Altera a velocidade/tom da voz (multiplicador).
-
-## Ferramentas Disponíveis
+## Available Tools
 
 ### `speech(text: str)`
-Converte o texto fornecido em áudio falado e o reproduz imediatamente. Se o modo de voz estiver ativo (`VOICE_MODE: ENABLED`), o modelo chamará esta ferramenta automaticamente.
+Converts the provided text to spoken audio and plays it immediately. If voice mode is active (`VOICE_MODE: ENABLED`), the model will call this tool automatically.
 
 ### `voice_toggle(enabled: bool)`
-Ativa ou desativa o modo de resposta automática por voz.
+Enables or disables automatic voice response mode.
 
 ### `model(model: str)`
-Altera o modelo de voz em tempo real.
+Changes the voice model in real-time.
 
 ### `pitch(pitch: float)`
-Altera a velocidade/tom da voz (multiplicador).
+Changes the voice speed/pitch (multiplier).
 
-## Como Adicionar Mais Vozes
+## How to Add More Voices
 
+Download compatible Piper voices:  
+👉 [Hugging Face - Piper Voices](https://huggingface.co/rhasspy/piper-voices/tree/main)
+
+Save the `.onnx` and `.json` files in the `models/` folder or configure the path via:
+```bash
+gemini extensions config gemini-cli-voice "Voice Model Path" /full/path/to/your-voice.onnx
+```
+
+Or via environment variables:
+```bash
+export VOICE_PIPER_PATH="/path/to/piper"
+export VOICE_MODEL_PATH="/path/to/your-voice.onnx"
+```

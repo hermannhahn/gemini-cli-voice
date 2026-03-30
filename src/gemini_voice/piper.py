@@ -15,29 +15,29 @@ def run_speech_task(
     length_scale: float,
     text: str,
 ) -> str | None:
-    """Executa o processo de sintetização e reprodução de áudio."""
+    """Runs the synthesis and audio playback process."""
     system = platform.system().lower()
 
-    # Prepara o ambiente para carregar bibliotecas locais
+    # Prepare environment for loading local libraries
     env = os.environ.copy()
     espeak_data = None
     if system == "linux":
         linux_bin_dir = BIN_DIR / "linux"
         env["LD_LIBRARY_PATH"] = f"{linux_bin_dir}:{env.get('LD_LIBRARY_PATH', '')}"
         espeak_data = linux_bin_dir / "espeak-ng-data"
-        # Garante permissão de execução no Linux
+        # Ensure execution permission on Linux
         piper_path = Path(piper_exe)
         if piper_path.exists():
             piper_path.chmod(0o755)
     elif system == "windows":
         espeak_data = BIN_DIR / "windows" / "espeak-ng-data"
 
-    # Cria arquivo temporário para o WAV
+    # Create temporary file for WAV
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
         temp_wav = Path(tf.name)
 
     try:
-        # 1. Piper gera o WAV
+        # 1. Piper generates the WAV
         piper_cmd = [
             piper_exe,
             "-q",
@@ -49,7 +49,7 @@ def run_speech_task(
             str(temp_wav),
         ]
 
-        # Adiciona o caminho do espeak-ng-data se disponível
+        # Add espeak-ng-data path if available
         if espeak_data and espeak_data.exists():
             piper_cmd.extend(["--espeak_data", str(espeak_data)])
 
@@ -63,7 +63,7 @@ def run_speech_task(
             p.communicate(input=text.encode("utf-8"))
 
         if system == "linux":
-            # Tenta primeiro o aplay do sistema, depois o local
+            # Try system aplay first, then local
             aplay_exe = shutil.which("aplay")
             if not aplay_exe:
                 aplay_exe = get_bin_path("aplay")
@@ -71,17 +71,17 @@ def run_speech_task(
                     Path(aplay_exe).chmod(0o755)
 
             if aplay_exe:
-                # 2. Toca o WAV de forma síncrona
+                # 2. Play WAV synchronously
                 subprocess.run(
                     [aplay_exe, str(temp_wav)],
                     check=False,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    env=env, # Passa env para o aplay local carregar bibliotecas se necessário
+                    env=env, # Pass env for local aplay to load libraries if needed
                 )
 
         elif system == "windows":
-            # 2. PowerShell toca o WAV de forma síncrona
+            # 2. PowerShell plays WAV synchronously
             ps_cmd = f"powershell -c \"(New-Object Media.SoundPlayer '{temp_wav}').PlaySync()\""
             subprocess.run(
                 ps_cmd,
@@ -95,7 +95,7 @@ def run_speech_task(
     except (subprocess.SubprocessError, OSError) as e:
         return str(e)
     finally:
-        # 3. Limpa o arquivo temporário
+        # 3. Clean up temporary file
         if temp_wav.exists():
             with contextlib.suppress(OSError):
                 temp_wav.unlink()

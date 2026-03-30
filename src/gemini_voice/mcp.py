@@ -7,11 +7,11 @@ from gemini_voice.config import load_config, save_config
 from gemini_voice.paths import MODELS_DIR, get_bin_path, get_model_path
 from gemini_voice.piper import run_speech_task
 
-VERSION = "1.2.17"
+VERSION = "1.2.18"
 
 
 def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
-    """Manipulador para a ferramenta 'speech'."""
+    """Handler for the 'speech' tool."""
     text = arguments.get("text", "")
     if not text.strip():
         return {"content": [{"type": "text", "text": "Error: Empty text."}]}
@@ -63,7 +63,7 @@ def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def voice_toggle_handler(arguments: dict[str, Any]) -> dict[str, Any]:
-    """Manipulador para a ferramenta 'voice_toggle'."""
+    """Handler for the 'voice_toggle' tool."""
     config = load_config()
     enabled = arguments.get("enabled", False)
     config["enabled"] = enabled
@@ -91,7 +91,7 @@ def voice_toggle_handler(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
-    """Manipulador para as ferramentas 'model' e 'pitch'."""
+    """Handler for 'model' and 'pitch' tools."""
     config = load_config()
     updated = False
 
@@ -102,12 +102,12 @@ def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
 
         model_path = Path(model_val)
 
-        # 1. Tentar como caminho absoluto
+        # 1. Try as absolute path
         if model_path.is_absolute() and model_path.is_file():
             config["model"] = str(model_path)
             updated = True
         else:
-            # 2. Tentar resolver contra MODELS_DIR (removendo prefixo redundante se necessário)
+            # 2. Try to resolve against MODELS_DIR
             name_only = model_path.name
             if (MODELS_DIR / name_only).exists():
                 config["model"] = name_only
@@ -115,7 +115,7 @@ def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
             elif (MODELS_DIR / model_val).exists():
                 config["model"] = model_val
                 updated = True
-            # 3. Tentar como caminho relativo ao CWD atual (se for um caminho com diretórios)
+            # 3. Try as relative path to current CWD
             elif model_path.exists() and model_path.is_file():
                 config["model"] = str(model_path.resolve())
                 updated = True
@@ -159,8 +159,8 @@ def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> None:
-    """Loop principal do servidor MCP."""
-    # Redireciona stderr para evitar que mensagens de bibliotecas quebrem o stdout
+    """Main loop for the MCP server."""
+    # Redirect stderr to prevent library messages from breaking stdout
     import os
     sys.stderr = Path(os.devnull).open("w")  # noqa: SIM115
 
@@ -178,7 +178,7 @@ def main() -> None:
             method = request.get("method")
             req_id = request.get("id")
 
-            # Notificações não têm ID e não devem ser respondidas
+            # Notifications have no ID and should not be answered
             if req_id is None and method != "initialize":
                 continue
 
@@ -271,7 +271,7 @@ def main() -> None:
 
                 response["result"] = result
             else:
-                # Para métodos desconhecidos que exigem resposta
+                # For unknown methods that require response
                 response["error"] = {"code": -32601, "message": f"Method '{method}' not found"}
 
             sys.stdout.write(json.dumps(response) + "\n")
@@ -280,5 +280,5 @@ def main() -> None:
         except EOFError:
             break
         except Exception:
-            # Em caso de erro catastrófico, tenta não quebrar o loop silenciosamente
+            # In case of catastrophic error, try not to break the loop silently
             continue
