@@ -54,13 +54,26 @@ Ou via variáveis de ambiente:
 ```bash
 export VOICE_PIPER_PATH="/caminho/para/piper"
 export VOICE_MODEL_PATH="/caminho/para/sua-voz.onnx"
-```
+## Comandos Disponíveis
+
+- `/voice:enable`: Ativa o modo de voz automático. O modelo passará a usar a voz em todas as respostas.
+- `/voice:disable`: Desativa o modo de voz automático. O modelo voltará a responder apenas por texto.
+- `/voice:model`: Altera o modelo de voz (.onnx).
+- `/voice:pitch`: Altera a velocidade/tom da voz (multiplicador).
 
 ## Ferramentas Disponíveis
 
 ### `speech(text: str)`
-Converte o texto fornecido em áudio falado e o reproduz imediatamente.
+Converte o texto fornecido em áudio falado e o reproduz imediatamente. Se o modo de voz estiver ativo (`VOICE_MODE: ENABLED`), o modelo chamará esta ferramenta automaticamente.
+
+### `voice_toggle(enabled: bool)`
+Ativa ou desativa o modo de resposta automática por voz.
+
 ### `model(model: str)`
 Altera o modelo de voz em tempo real.
+
 ### `pitch(pitch: float)`
 Altera a velocidade/tom da voz (multiplicador).
+
+## Como Adicionar Mais Vozes
+

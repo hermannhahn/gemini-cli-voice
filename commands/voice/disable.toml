@@ -1,0 +1,10 @@
+description = "Desabilita o modo de resposta automática por voz"
+prompt = """
+O usuário solicitou desabilitar o modo de voz através do comando `/voice:disable`.
+
+Chame a ferramenta `voice_toggle` passando `enabled = false`.
+
+Após o sucesso:
+- Confirme para o usuário que o modo de voz foi desativado.
+- Volte a responder apenas por texto, a menos que a ferramenta `speech` seja solicitada explicitamente.
+"""

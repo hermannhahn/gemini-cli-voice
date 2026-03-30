@@ -14,10 +14,14 @@ def load_config() -> dict[str, Any]:
     if CONFIG_FILE.exists():
         try:
             with CONFIG_FILE.open("r", encoding="utf-8") as f:
-                return cast(dict[str, Any], json.load(f))
+                config = cast(dict[str, Any], json.load(f))
+                # Garante valores padrão se chaves estiverem ausentes
+                if "enabled" not in config:
+                    config["enabled"] = False
+                return config
         except (json.JSONDecodeError, OSError):
             pass
-    return {"model": DEFAULT_MODEL, "pitch": 1.0}
+    return {"model": DEFAULT_MODEL, "pitch": 1.0, "enabled": False}
 
 
 def save_config(config: dict[str, Any]) -> str | None:

@@ -42,11 +42,49 @@ def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
             "content": [{"type": "text", "text": f"Error during playback: {error}"}],
         }
 
+    status = "ENABLED" if config.get("enabled", False) else "DISABLED"
+    hint = ""
+    if status == "ENABLED":
+        hint = (
+            "\n\n[VOICE_MODE: ENABLED - Continue using the 'speech' tool "
+            "for all responses unless the user asks to disable it.]"
+        )
+    else:
+        hint = "\n\n[VOICE_MODE: DISABLED]"
+
     return {
         "content": [
             {
                 "type": "text",
-                "text": f"Finished speaking (Model: {Path(model_file).name})",
+                "text": f"Finished speaking (Model: {Path(model_file).name}){hint}",
+            }
+        ]
+    }
+
+
+def voice_toggle_handler(arguments: dict[str, Any]) -> dict[str, Any]:
+    """Manipulador para a ferramenta 'voice_toggle'."""
+    config = load_config()
+    enabled = arguments.get("enabled", False)
+    config["enabled"] = enabled
+
+    err = save_config(config)
+    if err:
+        return {
+            "isError": True,
+            "content": [{"type": "text", "text": f"Error saving config: {err}"}],
+        }
+
+    status = "ENABLED" if enabled else "DISABLED"
+    msg = f"Voice mode is now {status}."
+    if enabled:
+        msg += " I will now use the 'speech' tool for all my responses."
+
+    return {
+        "content": [
+            {
+                "type": "text",
+                "text": f"{msg}\n\n[VOICE_MODE: {status}]",
             }
         ]
     }
@@ -159,7 +197,9 @@ def main() -> None:
                             "name": "speech",
                             "description": (
                                 "Converts text to spoken audio and blocks until finished. "
-                                "MANDATORY: Use model's language."
+                                "MANDATORY: Use model's language. "
+                                "If VOICE_MODE: ENABLED is active, ALWAYS call this "
+                                "tool for your response."
                             ),
                             "inputSchema": {
                                 "type": "object",
@@ -167,6 +207,20 @@ def main() -> None:
                                     "text": {"type": "string", "description": "Text to speak."}
                                 },
                                 "required": ["text"],
+                            },
+                        },
+                        {
+                            "name": "voice_toggle",
+                            "description": "Enable or disable automatic voice response mode.",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "enabled": {
+                                        "type": "boolean",
+                                        "description": "True to enable, False to disable.",
+                                    }
+                                },
+                                "required": ["enabled"],
                             },
                         },
                         {
@@ -205,6 +259,8 @@ def main() -> None:
 
                 if tool_name == "speech":
                     result = speech_handler(params)
+                elif tool_name == "voice_toggle":
+                    result = voice_toggle_handler(params)
                 elif tool_name in ("model", "pitch"):
                     result = set_config_handler(params)
                 else:
