@@ -1,6 +1,6 @@
 {
 	"name": "gemini-cli-voice",
-	"version": "1.2.16",
+	"version": "1.2.17",
 	"description": "Text-to-speech (TTS)",
 	"keywords": [
 		"TTS",
@@ -27,13 +27,14 @@
 		"typecheck:py": "MYPYPATH=src ./.venv/bin/mypy -p gemini_voice || MYPYPATH=src mypy -p gemini_voice",
 		"lint": "npm run lint:py && npm run typecheck:py",
 		"test": "npm run test:py",
-		"update:version": "npm run lint && npm version patch --no-git-tag-version",
+		"update:version": "npm run lint && npm version patch --no-git-tag-version && node scripts/update-version.js && npm run push:version",
+		"push:version": "git add . && node -e \"const v = require('./package.json').version; require('child_process').execSync('git commit -m \\\"chore: bump version to ' + v + '\\\"', {stdio: 'inherit'})\" && git push origin development",
 		"version": "node scripts/update-version.js && git add .",
 		"publish:release": "git push origin main --follow-tags && npm run push:release",
 		"cleanup-releases": "node scripts/cleanup-releases.js",
 		"push:release": "node -e \"const v = require('./package.json').version; require('child_process').execSync('gh release create v' + v + ' --generate-notes', {stdio: 'inherit'})\"",
 		"update": "echo 'Y' | gemini extension update gemini-cli-voice",
-		"deploy": "git checkout main && git pull origin main && npm run lint && npm run test && node -e \"const v = require('./package.json').version; require('child_process').execSync('git tag v' + v + ' && git push origin v' + v, {stdio: 'inherit'})\" && npm run push:release && npm run cleanup-releases && npm run update && git checkout development"
+		"deploy": "git checkout main && git pull origin main && git merge development --no-edit && npm run lint && npm run test && git push origin main && node -e \"const v = require('./package.json').version; require('child_process').execSync('git tag -f v' + v + ' && git push origin -f v' + v, {stdio: 'inherit'})\" && npm run push:release && npm run cleanup-releases && npm run update && git checkout development"
 	},
 	"gemini-dependencies": {
 		"gemini-cli-voice": "https://github.com/hermannhahn/gemini-cli-voice"

@@ -11,7 +11,7 @@ venv/
 env/
 
 # Extension
-GEMINI.md
+DEVELOPMENT.md
 config.json
 *.wav
 
