@@ -37,6 +37,7 @@
 		"deploy": "git checkout main && git pull origin main && git merge development --no-edit && npm run lint && npm run test && git push origin main && node -e \"const v = require('./package.json').version; require('child_process').execSync('git tag -f v' + v + ' && git push origin -f v' + v, {stdio: 'inherit'})\" && npm run push:release && npm run cleanup-releases && npm run update && git checkout development"
 	},
 	"gemini-dependencies": {
-		"gemini-cli-voice": "https://github.com/hermannhahn/gemini-cli-voice"
+		"gemini-cli-voice": "https://github.com/hermannhahn/gemini-cli-voice",
+		"superpowers": "https://github.com/obra/superpowers"
 	}
 }
