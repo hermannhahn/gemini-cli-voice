@@ -1,7 +1,7 @@
 {
   "name": "gemini-cli-voice",
   "version": "1.2.22",
-  "description": "High-quality text-to-speech (TTS) integration for Gemini CLI using Piper. Supports multiple voices, custom pitch control, and localized speech generation.",
+  "description": "High-quality local text-to-speech (TTS) for Gemini CLI using Piper.",
   "mcpServers": {
     "voice": {
       "command": "python3",
