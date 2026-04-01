@@ -2,7 +2,7 @@
 
 [![Gemini CLI Extension](https://img.shields.io/badge/Gemini%20CLI-Extension-blue?logo=google-gemini&logoColor=white)](https://geminicli.com/extensions/gemini-cli-voice)
 [![Version](https://img.shields.io/github/v/release/hermannhahn/gemini-cli-voice)](https://github.com/hermannhahn/gemini-cli-voice/releases)
-[![CI/CD Workflow](https://github.com/hermannhahn/gemini-cli-voice/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/hermannhahn/gemini-cli-voice/actions/workflows/ci-cd.yml)
+[![CI/CD Workflow](https://github.com/hermannhahn/gemini-cli-voice/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/hermannhahn/gemini-cli-voice/actions/workflows/ci-cd.yml)
 [![License](https://img.shields.io/github/license/hermannhahn/gemini-cli-voice)](https://github.com/hermannhahn/gemini-cli-voice/blob/main/LICENSE)
 [![GitHub Topics](https://img.shields.io/github/topics/hermannhahn/gemini-cli-voice)](https://github.com/hermannhahn/gemini-cli-voice)
 
