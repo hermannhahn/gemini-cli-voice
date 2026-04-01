@@ -1,5 +1,10 @@
 # Gemini CLI Voice Extension
 
+[![Gemini CLI Extension](https://img.shields.io/badge/Gemini%20CLI-Extension-blue?logo=google-gemini&logoColor=white)](https://geminicli.com/extensions/gemini-cli-voice)
+[![Version](https://img.shields.io/github/v/release/hermannhahn/gemini-cli-voice)](https://github.com/hermannhahn/gemini-cli-voice/releases)
+[![License](https://img.shields.io/github/license/hermannhahn/gemini-cli-voice)](https://github.com/hermannhahn/gemini-cli-voice/blob/main/LICENSE)
+[![GitHub Topics](https://img.shields.io/github/topics/hermannhahn/gemini-cli-voice)](https://github.com/hermannhahn/gemini-cli-voice)
+
 This extension adds the `speech` tool to Gemini CLI, allowing the model to communicate via synthesized audio using the Piper (TTS) engine.
 
 ## Professional Architecture and Structure
