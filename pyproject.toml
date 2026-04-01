@@ -1,6 +1,6 @@
 [project]
 name = "gemini-cli-voice"
-version = "1.3.0"
+version = "1.3.1"
 description = "Text-to-speech (TTS) extension for Gemini CLI using Piper"
 authors = [
     { name = "Hermann Hahn", email = "hermannhahn@gmail.com" }
