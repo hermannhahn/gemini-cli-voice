@@ -12,7 +12,7 @@ import { runSpeechTask } from "./piper";
 const server = new Server(
 	{
 		name: "gemini-cli-voice-mcp",
-		version: "1.5.3",
+		version: "1.5.4",
 	},
 	{
 		capabilities: {
