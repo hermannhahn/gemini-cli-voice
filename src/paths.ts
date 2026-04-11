@@ -41,41 +41,46 @@ export function getModelPath(): string | null {
 		return modelVal;
 	}
 
-	const userModelDir = path.join(os.homedir(), ".voice", "models");
 	const nameOnly = path.basename(modelVal);
+	const searchPaths: string[] = [];
 
-	// 2. Try user's .voice/models directory FIRST (if not default)
-	if (modelVal !== DEFAULT_MODEL) {
-		const userPath = path.join(userModelDir, modelVal);
-		if (fs.existsSync(userPath)) return userPath;
-		
-		const namePathUser = path.join(userModelDir, nameOnly);
-		if (fs.existsSync(namePathUser)) return namePathUser;
+	// Add custom directory from config if set
+	if (config.customModelsDir && fs.existsSync(config.customModelsDir)) {
+		searchPaths.push(config.customModelsDir);
 	}
 
-	// 3. Try extension's models directory
-	const localPath = path.join(MODELS_DIR, modelVal);
-	if (fs.existsSync(localPath)) return localPath;
+	// Add default local directory
+	searchPaths.push(MODELS_DIR);
 
-	const namePathLocal = path.join(MODELS_DIR, nameOnly);
-	if (fs.existsSync(namePathLocal)) return namePathLocal;
+	// Add classic user directory ~/.voice/models
+	const defaultUserDir = path.join(os.homedir(), ".voice", "models");
+	if (fs.existsSync(defaultUserDir)) {
+		searchPaths.push(defaultUserDir);
+	}
 
-	// 4. Try user's .voice/models as a last resort even for default
-	const userPathFallback = path.join(userModelDir, modelVal);
-	if (fs.existsSync(userPathFallback)) return userPathFallback;
+	// 2. Try looking in all search paths for the exact model name or filename
+	for (const dir of searchPaths) {
+		const fullPath = path.join(dir, modelVal);
+		if (fs.existsSync(fullPath)) return fullPath;
 
-	// Fallback to default in local dir
+		const namePath = path.join(dir, nameOnly);
+		if (fs.existsSync(namePath)) return namePath;
+	}
+
+	// 3. Fallback to default in local dir
 	const fallbackDefault = path.join(MODELS_DIR, DEFAULT_MODEL);
 	if (fs.existsSync(fallbackDefault)) {
 		return fallbackDefault;
 	}
 
-	// Final search for any .onnx in local dir
-	if (fs.existsSync(MODELS_DIR)) {
-		const files = fs.readdirSync(MODELS_DIR);
-		const onnxFile = files.find((f) => f.endsWith(".onnx"));
-		if (onnxFile) {
-			return path.join(MODELS_DIR, onnxFile);
+	// 4. Final search for any .onnx in any search path
+	for (const dir of searchPaths) {
+		if (fs.existsSync(dir)) {
+			const files = fs.readdirSync(dir);
+			const onnxFile = files.find((f) => f.endsWith(".onnx"));
+			if (onnxFile) {
+				return path.join(dir, onnxFile);
+			}
 		}
 	}
 

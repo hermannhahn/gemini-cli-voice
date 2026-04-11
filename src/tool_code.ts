@@ -12,7 +12,7 @@ import { runSpeechTask } from "./piper";
 const server = new Server(
 	{
 		name: "gemini-cli-voice-mcp",
-		version: "1.5.3",
+		version: "1.5.4",
 	},
 	{
 		capabilities: {
@@ -130,6 +130,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 		case "model": {
 			const { model: modelName } = args as { model: string };
 			const config = loadConfig();
+			
+			// If it's a directory, set it as custom models directory
+			if (fs.existsSync(modelName) && fs.lstatSync(modelName).isDirectory()) {
+				config.customModelsDir = modelName;
+				saveConfig(config);
+				return { content: [{ type: "text", text: `Custom models directory set to ${modelName}.` }] };
+			}
+
+			// If it's a file or a simple name, set it as the model
 			config.model = modelName;
 			saveConfig(config);
 			// We don't check existence here to keep it simple, getModelPath handles it
