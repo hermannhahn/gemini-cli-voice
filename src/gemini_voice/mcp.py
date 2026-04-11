@@ -13,7 +13,7 @@ from gemini_voice.config import load_config, save_config  # noqa: E402
 from gemini_voice.paths import get_bin_path, get_model_path  # noqa: E402
 from gemini_voice.piper import run_speech_task  # noqa: E402
 
-VERSION = "1.3.6"
+VERSION = "1.3.7"
 
 # Basic logging configuration
 log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
