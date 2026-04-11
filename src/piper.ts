@@ -64,7 +64,9 @@ export async function runSpeechTask(
 			try {
 				const res = spawnSync("which", ["aplay"], { encoding: "utf8" });
 				if (res.status === 0) aplayExe = res.stdout.trim();
-			} catch {}
+			} catch {
+				// Fallback to local aplay
+			}
 
 			if (!aplayExe) {
 				const localAplay = path.join(BIN_DIR, "linux", "aplay");
@@ -91,7 +93,9 @@ export async function runSpeechTask(
 		if (fs.existsSync(tempWav)) {
 			try {
 				fs.unlinkSync(tempWav);
-			} catch {}
+			} catch {
+				// Ignore errors deleting temp file
+			}
 		}
 	}
 }

@@ -8,7 +8,5 @@
       "args": [
         "${extensionPath}/dist/tool_code.js"
       ]
-    }
-  },
-  "contextFileName": "GEMINI.md"
+  }
 }

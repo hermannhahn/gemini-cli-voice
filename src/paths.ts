@@ -12,7 +12,7 @@ export function getBinPath(binName: string): string | null {
 
 	const system = os.platform();
 	let fullBinName = binName;
-	let subDir = "";
+	let subDir: string;
 
 	if (system === "win32") {
 		subDir = "windows";

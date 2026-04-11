@@ -5,7 +5,6 @@ import {
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "fs";
-import path from "path";
 import { loadConfig, saveConfig } from "./config";
 import { getBinPath, getModelPath } from "./paths";
 import { runSpeechTask } from "./piper";
