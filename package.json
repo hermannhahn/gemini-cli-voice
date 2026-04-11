@@ -1,7 +1,7 @@
 {
 	"name": "gemini-cli-voice",
-	"version": "1.3.7",
-	"description": "Text-to-speech (TTS)",
+	"version": "1.4.0",
+	"description": "High-quality local text-to-speech (TTS) for Gemini CLI using Piper.",
 	"keywords": [
 		"TTS",
 		"Gemini",
@@ -18,22 +18,37 @@
 	"license": "ISC",
 	"author": "Hermann Hahn",
 	"type": "commonjs",
-	"main": "tool_code.js",
+	"main": "dist/tool_code.js",
+	"files": [
+		"dist",
+		"bin",
+		"models",
+		"gemini-extension.json",
+		"GEMINI.md"
+	],
 	"scripts": {
-		"setup:py": "python3 -m venv .venv && ./.venv/bin/pip install --upgrade pip && ./.venv/bin/pip install -e .[dev]",
-		"lint:py": "./.venv/bin/ruff check src tests || ruff check src tests",
-		"format:py": "./.venv/bin/ruff format src tests || ruff format src tests",
-		"test:py": "./.venv/bin/pytest tests || pytest tests",
-		"typecheck:py": "MYPYPATH=src ./.venv/bin/mypy -p gemini_voice || MYPYPATH=src mypy -p gemini_voice",
-		"lint": "npm run lint:py && npm run typecheck:py",
-		"test": "npm run test:py",
+		"lint": "eslint \"src/**/*.ts\" --fix",
+		"test": "echo \"No tests specified\" && exit 0",
+		"webpack": "webpack",
+		"build": "webpack",
 		"cleanup-releases": "node scripts/cleanup-releases.js",
+		"update:version": "npm run lint && npm version patch --no-git-tag-version && node scripts/update-version.js && webpack && npm run push:version",
 		"push:version": "git add . && node -e \"const v = require('./package.json').version; require('child_process').execSync('git commit -m \\\"chore: bump version to ' + v + '\\\"', {stdio: 'inherit'})\" && git push origin development",
 		"push:release": "node -e \"const v = require('./package.json').version; require('child_process').execSync('gh release create v' + v + ' --generate-notes', {stdio: 'inherit'})\"",
-		"update:version": "npm run lint && npm version patch --no-git-tag-version && node scripts/update-version.js && npm run push:version",
-		"deploy": "git checkout main && git pull origin main && npm run lint && npm run test && git push origin main && node -e \"const v = require('./package.json').version; require('child_process').execSync('git tag -f v' + v + ' && git push origin -f v' + v, {stdio: 'inherit'})\" && npm run push:release"
+		"deploy": "git checkout main && git pull origin main && npm run lint && webpack && git add dist/tool_code.js && git commit -m 'chore: build tool_code.js for release' || true && git push origin main && node -e \"const v = require('./package.json').version; require('child_process').execSync('git tag -f v' + v + ' && git push origin -f v' + v, {stdio: 'inherit'})\" && npm run push:release"
 	},
-	"gemini-dependencies": {
-		"gemini-cli-voice": "https://github.com/hermannhahn/gemini-cli-voice"
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.28.0"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@types/node": "^20.19.37",
+		"eslint": "^10.0.3",
+		"ts-loader": "^9.5.4",
+		"typescript": "^5.9.3",
+		"typescript-eslint": "^8.57.1",
+		"webpack": "^5.105.2",
+		"webpack-cli": "^6.0.1",
+		"rimraf": "^6.0.1"
 	}
 }

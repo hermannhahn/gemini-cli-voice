@@ -6,45 +6,36 @@
 [![License](https://img.shields.io/github/license/hermannhahn/gemini-cli-voice)](https://github.com/hermannhahn/gemini-cli-voice/blob/main/LICENSE)
 [![GitHub Topics](https://img.shields.io/github/topics/hermannhahn/gemini-cli-voice)](https://github.com/hermannhahn/gemini-cli-voice)
 
-This extension adds the `speech` tool to Gemini CLI, allowing the model to communicate via synthesized audio using the Piper (TTS) engine.
+This extension adds the `speech` tool to Gemini CLI, allowing the model to communicate via synthesized audio using the Piper (TTS) engine. Now fully implemented in TypeScript for better performance and reliability.
 
 ## Professional Architecture and Structure
 
-The project follows modern hybrid development standards (Node.js and Python):
+The project follows modern TypeScript development standards:
 
-- **Modularization**: Logic separated into Python packages in `src/gemini_voice/`.
-- **Static Typing**: Extensive use of *type hints* and validation with `mypy`.
-- **Linting & Formatting**: Standardized with `ruff` for maximum speed and consistency.
-- **Testing**: Automated test suite with `pytest`.
-- **Dependency Management**: Isolated Python virtual environment managed via `npm` scripts.
+- **Modularization**: Logic separated into TypeScript modules in `src/`.
+- **Static Typing**: Full type safety with TypeScript.
+- **Bundling**: High-performance bundling using Webpack.
+- **MCP Native**: Uses the official `@modelcontextprotocol/sdk`.
+- **Cross-Platform**: Built-in support for Windows (PowerShell) and Linux (Aplay).
 
 ## System Requirements
 
-1.  **Python 3.10+**
-2.  **Node.js & npm**
-3.  **Aplay** (Linux) or **PowerShell** (Windows) for audio playback.
+1.  **Node.js & npm**
+2.  **Aplay** (Linux) or **PowerShell** (Windows) for audio playback.
 
 ## Installation and Setup
 
 To set up the development environment:
 ```bash
 npm install
-npm run setup:py
+npm run build
 ```
-
-This will create a `.venv` virtual environment and install all development tools.
 
 ## Installation in Gemini CLI
 
 ```bash
 gemini extensions install https://github.com/hermannhahn/gemini-cli-voice.git
 ```
-
-## Development
-
-- **Linting and Types**: `npm run lint`
-- **Tests**: `npm run test`
-- **Automatic Formatting**: `npm run format:py`
 
 ## Available Commands
 
@@ -62,22 +53,22 @@ Changes the voice model (.onnx) used.
 
 ### `/voice:pitch [value]`
 Changes the voice speed/pitch multiplier.
-- **Without arguments**: Shows the current pitch and requests a new value (e.g., between 0.5 and 3.0) via an interactive interface.
+- **Without arguments**: Shows the current pitch and requests a new value (e.g., between 0.5 and 2.0) via an interactive interface.
 - **With argument (number)**: Configures the pitch multiplier directly.
 
 ## Available Tools
 
-### `mcp_voice_speech(text: str)`
+### `mcp_voice_speech(text: string)`
 Converts the provided text to spoken audio and plays it immediately. This is the primary tool for voice responses.
 - **Conversation Rules**: If voice mode is active, the model should use only this tool, keep messages short (1-3 sentences), and skip unnecessary preambles.
 
-### `mcp_voice_voice_toggle(enabled: bool)`
+### `mcp_voice_voice_toggle(enabled: boolean)`
 Internally enables or disables automatic voice response mode.
 
-### `mcp_voice_model(model: str)`
+### `mcp_voice_model(model: string)`
 Changes the voice model (.onnx) in real-time, validating the path or filename in the `models/` folder.
 
-### `mcp_voice_pitch(pitch: float)`
+### `mcp_voice_pitch(pitch: number)`
 Changes the voice speed/pitch multiplier in real-time.
 
 ## How to Add More Voices

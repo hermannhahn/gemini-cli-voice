@@ -1,8 +1,8 @@
 const { spawn } = require('child_process');
 const path = require('path');
 
-const launcher = path.join(__dirname, 'launcher.js');
-const child = spawn('node', [launcher], {
+const serverScript = path.join(__dirname, 'dist', 'tool_code.js');
+const child = spawn('node', [serverScript], {
   stdio: ['pipe', 'pipe', 'inherit'],
   env: { ...process.env, NODE_NO_WARNINGS: '1' }
 });
@@ -14,13 +14,17 @@ child.stdout.on('data', (data) => {
   console.log('Received from stdout:', str);
   if (output.includes('\n')) {
     try {
-      const resp = JSON.parse(output.trim());
+      const lines = output.trim().split('\n');
+      const lastLine = lines[lines.length - 1];
+      const resp = JSON.parse(lastLine);
       console.log('Valid JSON received:', resp);
-      console.log('Handshake successful!');
-      child.kill();
-      process.exit(0);
+      if (resp.result && resp.result.protocolVersion) {
+        console.log('Handshake successful!');
+        child.kill();
+        process.exit(0);
+      }
     } catch (e) {
-      console.error('Invalid JSON received yet...');
+      console.error('Invalid JSON received yet or waiting for full line...');
     }
   }
 });
