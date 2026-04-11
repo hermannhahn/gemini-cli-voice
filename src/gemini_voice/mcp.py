@@ -9,14 +9,15 @@ src_path = Path(__file__).resolve().parent.parent
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-from gemini_voice.config import load_config, save_config
-from gemini_voice.paths import get_bin_path, get_model_path
-from gemini_voice.piper import piper_speak
+from gemini_voice.config import load_config, save_config  # noqa: E402
+from gemini_voice.paths import get_bin_path, get_model_path  # noqa: E402
+from gemini_voice.piper import piper_speak  # noqa: E402
 
 VERSION = "1.3.5"
 
 # Basic logging configuration
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+logging.basicConfig(level=logging.INFO, format=log_fmt)
 logger = logging.getLogger("gemini-voice-mcp")
 
 
@@ -66,7 +67,10 @@ def model_handler(arguments: dict[str, Any]) -> dict[str, Any]:
     """Handler for the 'model' tool."""
     model_name = arguments.get("model", "")
     if not model_name:
-        return {"content": [{"type": "text", "text": "Error: No model name provided."}], "isError": True}
+        return {
+            "content": [{"type": "text", "text": "Error: No model name provided."}],
+            "isError": True,
+        }
 
     # Check if file exists in models directory
     model_path = get_model_path(model_name)
@@ -88,7 +92,10 @@ def pitch_handler(arguments: dict[str, Any]) -> dict[str, Any]:
     try:
         pitch = float(arguments.get("pitch", 1.0))
     except (ValueError, TypeError):
-        return {"content": [{"type": "text", "text": "Error: Invalid pitch value."}], "isError": True}
+        return {
+            "content": [{"type": "text", "text": "Error: Invalid pitch value."}],
+            "isError": True,
+        }
 
     config = load_config()
     config["pitch"] = pitch
@@ -108,7 +115,10 @@ def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
     try:
         new_config = arguments.get("config", {})
         if not isinstance(new_config, dict):
-            return {"content": [{"type": "text", "text": "Error: Invalid config."}], "isError": True}
+            return {
+                "content": [{"type": "text", "text": "Error: Invalid config."}],
+                "isError": True,
+            }
 
         config = load_config()
         config.update(new_config)
