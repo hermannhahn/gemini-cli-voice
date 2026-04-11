@@ -1,18 +1,27 @@
 const { spawn } = require('child_process');
 const path = require('path');
 
-const launcher = path.join(__dirname, 'launcher.cjs');
-const child = spawn('node', ['--no-warnings', launcher], {
-  stdio: ['pipe', 'pipe', 'inherit']
+const launcher = path.join(__dirname, 'launcher.js');
+const child = spawn('node', [launcher], {
+  stdio: ['pipe', 'pipe', 'inherit'],
+  env: { ...process.env, NODE_NO_WARNINGS: '1' }
 });
 
 let output = '';
 child.stdout.on('data', (data) => {
-  output += data.toString();
-  console.log('Received:', data.toString());
+  const str = data.toString();
+  output += str;
+  console.log('Received from stdout:', str);
   if (output.includes('\n')) {
-    console.log('Got a full line! Handshake successful.');
-    process.exit(0);
+    try {
+      const resp = JSON.parse(output.trim());
+      console.log('Valid JSON received:', resp);
+      console.log('Handshake successful!');
+      child.kill();
+      process.exit(0);
+    } catch (e) {
+      console.error('Invalid JSON received yet...');
+    }
   }
 });
 
@@ -31,6 +40,7 @@ console.log('Sending initialize request...');
 child.stdin.write(req);
 
 setTimeout(() => {
-  console.log('Timeout reached. No response.');
+  console.log('Timeout reached. Output so far:', output);
+  child.kill();
   process.exit(1);
 }, 5000);

@@ -4,6 +4,12 @@ const os = require('os');
 const fs = require('fs');
 
 const isWin = os.platform() === 'win32';
+const logFile = path.join(__dirname, 'launcher.log');
+
+function log(msg) {
+  const timestamp = new Date().toISOString();
+  fs.appendFileSync(logFile, `[${timestamp}] ${msg}\n`);
+}
 
 /**
  * Procura pelo executável do Python de forma resiliente.
@@ -14,6 +20,7 @@ function findPython() {
     ? [
         path.join(venvPath, 'Scripts', 'python.exe'), 
         path.join(venvPath, 'bin', 'python.exe'), 
+        path.join(venvPath, 'bin', 'python'),
         'python', 
         'py'
       ]
@@ -25,7 +32,8 @@ function findPython() {
       if (res.status === 0) {
         if (isWin && !path.isAbsolute(cmd)) {
           try {
-            const realPath = execSync(`where ${cmd}`, { encoding: 'utf-8' }).split('\r\n')[0].trim();
+            const whereRes = execSync(`where ${cmd}`, { encoding: 'utf-8' });
+            const realPath = whereRes.split(/\r?\n/)[0].trim();
             if (realPath && fs.existsSync(realPath)) return realPath;
           } catch (e) {}
         }
@@ -39,31 +47,37 @@ function findPython() {
 const pythonCmd = findPython();
 const scriptPath = path.resolve(__dirname, 'tool_code.py');
 
-// Spawna o processo MCP. 
-// Usamos pipe manual para ter certeza que nada (como warnings) suje o stdout.
+log(`Starting: ${pythonCmd} ${scriptPath}`);
+
 const child = spawn(pythonCmd, [scriptPath, ...process.argv.slice(2)], {
-  stdio: ['pipe', 'pipe', 'pipe'],
-  shell: isWin && !path.isAbsolute(pythonCmd),
-  env: { ...process.env, PYTHONUTF8: '1' }
+  stdio: ['pipe', 'pipe', 'inherit'],
+  shell: false,
+  env: { 
+    ...process.env, 
+    PYTHONUTF8: '1',
+    NODE_NO_WARNINGS: '1'
+  }
 });
 
 // Proxy stdin/stdout
 process.stdin.pipe(child.stdin);
 child.stdout.pipe(process.stdout);
 
-// Redireciona stderr para o console.error do Node, que não deve afetar o stdout do processo pai
-child.stderr.on('data', (data) => {
-  process.stderr.write(`[Python Stderr]: ${data}`);
-});
-
 child.on('exit', (code) => {
-  if (code !== 0) {
-    process.stderr.write(`[Python Exit]: Child exited with code ${code}\n`);
-  }
+  log(`Child exited with code ${code}`);
   process.exit(code || 0);
 });
 
 child.on('error', (err) => {
-  process.stderr.write(`[Spawn Error]: ${err.message}\n`);
+  log(`Spawn error: ${err.message}`);
+  process.stderr.write(`[Launcher Error]: ${err.message}\n`);
   process.exit(1);
+});
+
+process.stdin.on('error', (err) => {
+  log(`Stdin error: ${err.message}`);
+});
+
+process.stdout.on('error', (err) => {
+  log(`Stdout error: ${err.message}`);
 });
