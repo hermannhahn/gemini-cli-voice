@@ -82,7 +82,6 @@ def model_handler(arguments: dict[str, Any]) -> dict[str, Any]:
 
     # Temporarily set config to check if model exists via get_model_path
     config = load_config()
-    old_model = config.get("model")
     config["model"] = model_name
 
     # Check if file exists
