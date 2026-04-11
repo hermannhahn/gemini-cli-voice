@@ -35,17 +35,34 @@ export function getModelPath(): string | null {
 
 	const config = loadConfig();
 	const modelVal = config.model || DEFAULT_MODEL;
-	const modelPath = path.isAbsolute(modelVal) ? modelVal : path.join(MODELS_DIR, modelVal);
 
-	if (fs.existsSync(modelPath)) {
-		return modelPath;
+	// 1. Try absolute path
+	if (path.isAbsolute(modelVal) && fs.existsSync(modelVal)) {
+		return modelVal;
 	}
 
-	// Try without extension if it fails
+	// 2. Try extension's models directory
+	const localPath = path.join(MODELS_DIR, modelVal);
+	if (fs.existsSync(localPath)) {
+		return localPath;
+	}
+
+	// 3. Try user's .voice/models directory
+	const userModelDir = path.join(os.homedir(), ".voice", "models");
+	const userPath = path.join(userModelDir, modelVal);
+	if (fs.existsSync(userPath)) {
+		return userPath;
+	}
+
+	// Try without extension if it fails (searching in both extension and user models dir)
 	const nameOnly = path.basename(modelVal);
-	const namePath = path.join(MODELS_DIR, nameOnly);
-	if (fs.existsSync(namePath)) {
-		return namePath;
+	const namePathLocal = path.join(MODELS_DIR, nameOnly);
+	if (fs.existsSync(namePathLocal)) {
+		return namePathLocal;
+	}
+	const namePathUser = path.join(userModelDir, nameOnly);
+	if (fs.existsSync(namePathUser)) {
+		return namePathUser;
 	}
 
 	// Fallback to default
