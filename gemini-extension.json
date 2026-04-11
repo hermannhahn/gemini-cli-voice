@@ -4,9 +4,9 @@
   "description": "High-quality local text-to-speech (TTS) for Gemini CLI using Piper.",
   "mcpServers": {
     "voice": {
-      "command": "python3",
+      "command": "node",
       "args": [
-        "${extensionPath}/tool_code.py"
+        "${extensionPath}/launcher.js"
       ]
     }
   },

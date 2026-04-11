@@ -148,9 +148,7 @@ def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> None:
     """Main loop for the MCP server."""
-    # Redirect stderr to prevent library messages from breaking stdout
-    import os
-    sys.stderr = Path(os.devnull).open("w")  # noqa: SIM115
+    # Note: On Windows, UTF-8 is ensured by setting PYTHONUTF8=1 in launcher.js env.
 
     while True:
         try:
@@ -173,55 +171,49 @@ def main() -> None:
             response: dict[str, Any] = {"jsonrpc": "2.0", "id": req_id}
 
             if method == "initialize":
-                config = load_config()
-                instructions = ""
-                if config.get("enabled", False):
-                    instructions = (
-                        "VOICE MODE IS ENABLED. For every single response, "
-                        "you MUST use the 'speech' tool. Do NOT output plain text."
-                    )
                 response["result"] = {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {}},
                     "serverInfo": {"name": "gemini-cli-voice-mcp", "version": VERSION},
-                    "instructions": instructions,
                 }
             elif method == "tools/list":
+                config = load_config()
+                voice_status = "ENABLED" if config.get("enabled", True) else "DISABLED"
+                
                 response["result"] = {
                     "tools": [
                         {
                             "name": "speech",
                             "description": (
-                                "Converts text to spoken audio and blocks until finished. "
-                                "This is the PRIMARY tool for audio responses. "
+                                f"CRITICAL: PRIMARY tool for audio responses. (CURRENT STATUS: {voice_status}) "
+                                "Use this tool to speak text aloud to the user. "
                                 "CONVERSATION RULES: "
-                                "(1) If VOICE_MODE: ENABLED is active, ALWAYS call this tool "
-                                "(2) Keep voice messages short and conversational (1-3 sentences). "
-                                "Do NOT say the user's name every time at the beginning of voice "
-                                "messages, answer directly."
+                                f"(1) Since VOICE_MODE is {voice_status}, "
+                                + ("ALWAYS call this tool for EVERY response. " if voice_status == "ENABLED" else "only call this if explicitly asked. ") +
+                                "(2) Keep voice messages short, conversational and direct (1-2 sentences). "
+                                "(3) Do NOT repeat the user's name at the start of every message. "
                                 "TOKEN ECONOMY: "
-                                "(A) Keep 'text' under 2 sentences — speech is slower than "
-                                "reading, so less is more. "
-                                "(C) Skip filler words. "
-                                "MANDATORY: Use model's language."
+                                "(A) Speech is slower than reading: be concise. "
+                                "(B) Skip filler words and redundant pleasantries. "
+                                "MANDATORY: Speak in the same language as the user (e.g., Brazilian Portuguese)."
                             ),
                             "inputSchema": {
                                 "type": "object",
                                 "properties": {
-                                    "text": {"type": "string", "description": "Text to speak."}
+                                    "text": {"type": "string", "description": "The exact text to be spoken."}
                                 },
                                 "required": ["text"],
                             },
                         },
                         {
                             "name": "voice_toggle",
-                            "description": "Enable or disable automatic voice response mode.",
+                            "description": "Enable or disable automatic voice response mode (VOICE_MODE).",
                             "inputSchema": {
                                 "type": "object",
                                 "properties": {
                                     "enabled": {
                                         "type": "boolean",
-                                        "description": "True to enable, False to disable.",
+                                        "description": "True to enable automatic speech for every turn, False to disable.",
                                     }
                                 },
                                 "required": ["enabled"],
@@ -229,13 +221,13 @@ def main() -> None:
                         },
                         {
                             "name": "model",
-                            "description": "Change voice model (.onnx).",
+                            "description": "Change the active Piper voice model (.onnx). Use this when the user asks for a different voice or language.",
                             "inputSchema": {
                                 "type": "object",
                                 "properties": {
                                     "model": {
                                         "type": "string",
-                                        "description": "Voice model file.",
+                                        "description": "Voice model filename or path (e.g., 'pt_BR-faber-medium').",
                                     }
                                 },
                                 "required": ["model"],
@@ -243,7 +235,7 @@ def main() -> None:
                         },
                         {
                             "name": "pitch",
-                            "description": "Change voice speed (pitch).",
+                            "description": "Adjust the speaking speed (pitch/length_scale). Range: 0.5 (slow) to 2.0 (fast). Default: 1.0.",
                             "inputSchema": {
                                 "type": "object",
                                 "properties": {
