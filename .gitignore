@@ -17,6 +17,7 @@ config.json
 
 # Node
 node_modules/
+dist/
 npm-debug.log*
 
 # Editor
