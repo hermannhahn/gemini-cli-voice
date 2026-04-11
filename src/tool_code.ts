@@ -5,7 +5,6 @@ import {
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "fs";
-import path from "path";
 import { loadConfig, saveConfig } from "./config";
 import { getBinPath, getModelPath } from "./paths";
 import { runSpeechTask } from "./piper";
@@ -13,7 +12,7 @@ import { runSpeechTask } from "./piper";
 const server = new Server(
 	{
 		name: "gemini-cli-voice-mcp",
-		version: "1.4.0",
+		version: "1.5.1",
 	},
 	{
 		capabilities: {
