@@ -5,6 +5,7 @@ export interface VoiceConfig {
 	model: string;
 	pitch: number;
 	enabled: boolean;
+	customModelsDir?: string;
 }
 
 export function loadConfig(): VoiceConfig {
@@ -16,6 +17,7 @@ export function loadConfig(): VoiceConfig {
 				model: config.model || DEFAULT_MODEL,
 				pitch: config.pitch ?? 1.0,
 				enabled: config.enabled ?? true,
+				customModelsDir: config.customModelsDir,
 			};
 		} catch (e) {
 			console.error("Error loading config:", e);
