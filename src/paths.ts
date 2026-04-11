@@ -41,37 +41,36 @@ export function getModelPath(): string | null {
 		return modelVal;
 	}
 
-	// 2. Try extension's models directory
-	const localPath = path.join(MODELS_DIR, modelVal);
-	if (fs.existsSync(localPath)) {
-		return localPath;
-	}
-
-	// 3. Try user's .voice/models directory
 	const userModelDir = path.join(os.homedir(), ".voice", "models");
-	const userPath = path.join(userModelDir, modelVal);
-	if (fs.existsSync(userPath)) {
-		return userPath;
-	}
-
-	// Try without extension if it fails (searching in both extension and user models dir)
 	const nameOnly = path.basename(modelVal);
-	const namePathLocal = path.join(MODELS_DIR, nameOnly);
-	if (fs.existsSync(namePathLocal)) {
-		return namePathLocal;
-	}
-	const namePathUser = path.join(userModelDir, nameOnly);
-	if (fs.existsSync(namePathUser)) {
-		return namePathUser;
+
+	// 2. Try user's .voice/models directory FIRST (if not default)
+	if (modelVal !== DEFAULT_MODEL) {
+		const userPath = path.join(userModelDir, modelVal);
+		if (fs.existsSync(userPath)) return userPath;
+		
+		const namePathUser = path.join(userModelDir, nameOnly);
+		if (fs.existsSync(namePathUser)) return namePathUser;
 	}
 
-	// Fallback to default
+	// 3. Try extension's models directory
+	const localPath = path.join(MODELS_DIR, modelVal);
+	if (fs.existsSync(localPath)) return localPath;
+
+	const namePathLocal = path.join(MODELS_DIR, nameOnly);
+	if (fs.existsSync(namePathLocal)) return namePathLocal;
+
+	// 4. Try user's .voice/models as a last resort even for default
+	const userPathFallback = path.join(userModelDir, modelVal);
+	if (fs.existsSync(userPathFallback)) return userPathFallback;
+
+	// Fallback to default in local dir
 	const fallbackDefault = path.join(MODELS_DIR, DEFAULT_MODEL);
 	if (fs.existsSync(fallbackDefault)) {
 		return fallbackDefault;
 	}
 
-	// Final search for any .onnx
+	// Final search for any .onnx in local dir
 	if (fs.existsSync(MODELS_DIR)) {
 		const files = fs.readdirSync(MODELS_DIR);
 		const onnxFile = files.find((f) => f.endsWith(".onnx"));
