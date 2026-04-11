@@ -13,7 +13,7 @@ from gemini_voice.config import load_config, save_config  # noqa: E402
 from gemini_voice.paths import get_bin_path, get_model_path  # noqa: E402
 from gemini_voice.piper import run_speech_task  # noqa: E402
 
-VERSION = "1.3.5"
+VERSION = "1.3.6"
 
 # Basic logging configuration
 log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -114,33 +114,13 @@ def pitch_handler(arguments: dict[str, Any]) -> dict[str, Any]:
     return {"content": [{"type": "text", "text": f"Voice pitch changed to {pitch}."}]}
 
 
-def get_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
-    """Handler for the 'get_config' tool (internal use)."""
-    config = load_config()
-    return {"content": [{"type": "text", "text": json.dumps(config)}]}
-
-
-def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
-    """Handler for the 'set_config' tool (internal use)."""
-    try:
-        new_config = arguments.get("config", {})
-        if not isinstance(new_config, dict):
-            return {
-                "content": [{"type": "text", "text": "Error: Invalid config."}],
-                "isError": True,
-            }
-
-        config = load_config()
-        config.update(new_config)
-        save_config(config)
-        return {"content": [{"type": "text", "text": "Config updated."}]}
-    except Exception as e:
-        return {"content": [{"type": "text", "text": f"Error: {e}"}], "isError": True}
-
-
 def main() -> None:
     """Main loop for the MCP server."""
-    # Note: On Windows, UTF-8 is ensured by setting PYTHONUTF8=1 in launcher.js env.
+    # Ensure stdout/stdin are UTF-8
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stdin, "reconfigure"):
+        sys.stdin.reconfigure(encoding="utf-8")
 
     while True:
         try:
@@ -159,10 +139,18 @@ def main() -> None:
             response: dict[str, Any] = {"jsonrpc": "2.0", "id": req_id}
 
             if method == "initialize":
+                config = load_config()
+                instructions = ""
+                if config.get("enabled", True):
+                    instructions = (
+                        "VOICE MODE IS ENABLED. For every single response, "
+                        "you MUST use the 'speech' tool. Do NOT output plain text."
+                    )
                 response["result"] = {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {}},
                     "serverInfo": {"name": "gemini-cli-voice-mcp", "version": VERSION},
+                    "instructions": instructions,
                 }
             elif method == "tools/list":
                 config = load_config()
@@ -255,7 +243,10 @@ def main() -> None:
                 elif tool_name == "pitch":
                     response["result"] = pitch_handler(arguments)
                 else:
-                    response["error"] = {"code": -32601, "message": f"Tool not found: {tool_name}"}
+                    response["error"] = {
+                        "code": -32601,
+                        "message": f"Tool not found: {tool_name}",
+                    }
             else:
                 response["error"] = {"code": -32601, "message": f"Method not found: {method}"}
 
