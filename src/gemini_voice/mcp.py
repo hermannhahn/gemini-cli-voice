@@ -11,7 +11,7 @@ if str(src_path) not in sys.path:
 
 from gemini_voice.config import load_config, save_config  # noqa: E402
 from gemini_voice.paths import get_bin_path, get_model_path  # noqa: E402
-from gemini_voice.piper import piper_speak  # noqa: E402
+from gemini_voice.piper import run_speech_task  # noqa: E402
 
 VERSION = "1.3.5"
 
@@ -25,10 +25,13 @@ def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
     """Handler for the 'speech' tool."""
     text = arguments.get("text", "")
     if not text:
-        return {"content": [{"type": "text", "text": "Error: No text provided."}], "isError": True}
+        return {
+            "content": [{"type": "text", "text": "Error: No text provided."}],
+            "isError": True,
+        }
 
     config = load_config()
-    model = get_model_path(config.get("model"))
+    model = get_model_path()
     piper_exe = get_bin_path("piper")
 
     if not model or not Path(model).exists():
@@ -43,8 +46,13 @@ def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
             "isError": True,
         }
 
-    # Execute piper-speak
-    err = piper_speak(text, model, piper_exe, pitch=config.get("pitch", 1.0))
+    # Execute speech task
+    err = run_speech_task(
+        piper_exe=piper_exe,
+        model_file=model,
+        length_scale=config.get("pitch", 1.0),
+        text=text,
+    )
 
     if err:
         return {"content": [{"type": "text", "text": f"Error: {err}"}], "isError": True}
@@ -72,18 +80,21 @@ def model_handler(arguments: dict[str, Any]) -> dict[str, Any]:
             "isError": True,
         }
 
-    # Check if file exists in models directory
-    model_path = get_model_path(model_name)
-    if not model_path or not Path(model_path).exists():
+    # Temporarily set config to check if model exists via get_model_path
+    config = load_config()
+    old_model = config.get("model")
+    config["model"] = model_name
+
+    # Check if file exists
+    model_path = get_model_path()
+    # If the returned path doesn't contain the requested name, it might be a fallback
+    if not model_path or model_name not in Path(model_path).name:
         return {
             "content": [{"type": "text", "text": f"Error: Model {model_name} not found."}],
             "isError": True,
         }
 
-    config = load_config()
-    config["model"] = model_name
     save_config(config)
-
     return {"content": [{"type": "text", "text": f"Voice model changed to {model_name}."}]}
 
 
