@@ -1,156 +1,146 @@
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import Any
 
-from gemini_voice.config import load_config, save_config
-from gemini_voice.paths import MODELS_DIR, get_bin_path, get_model_path
-from gemini_voice.piper import run_speech_task
+# Add src directory to path
+src_path = Path(__file__).resolve().parent.parent
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
-VERSION = "1.3.4"
+from gemini_voice.config import load_config, save_config  # noqa: E402
+from gemini_voice.paths import get_bin_path, get_model_path  # noqa: E402
+from gemini_voice.piper import run_speech_task  # noqa: E402
+
+VERSION = "1.3.5"
+
+# Basic logging configuration
+log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+logging.basicConfig(level=logging.INFO, format=log_fmt)
+logger = logging.getLogger("gemini-voice-mcp")
 
 
 def speech_handler(arguments: dict[str, Any]) -> dict[str, Any]:
     """Handler for the 'speech' tool."""
     text = arguments.get("text", "")
-    if not text.strip():
-        return {"content": [{"type": "text", "text": "Error: Empty text."}]}
+    if not text:
+        return {
+            "content": [{"type": "text", "text": "Error: No text provided."}],
+            "isError": True,
+        }
 
     config = load_config()
+    model = get_model_path()
     piper_exe = get_bin_path("piper")
-    model_file = get_model_path()
 
-    if not piper_exe:
+    if not model or not Path(model).exists():
         return {
+            "content": [{"type": "text", "text": f"Error: Model not found at {model}"}],
             "isError": True,
-            "content": [{"type": "text", "text": "Error: Piper binary not found."}],
-        }
-    if not model_file:
-        return {
-            "isError": True,
-            "content": [{"type": "text", "text": "Error: Voice model not found."}],
         }
 
-    pitch = float(config.get("pitch", 1.0))
-    length_scale = 1.0 / pitch if pitch > 0 else 1.0
-
-    error = run_speech_task(piper_exe, model_file, length_scale, text)
-
-    if error:
+    if not piper_exe or not Path(piper_exe).exists():
         return {
+            "content": [{"type": "text", "text": f"Error: Piper not found at {piper_exe}"}],
             "isError": True,
-            "content": [{"type": "text", "text": f"Error during playback: {error}"}],
         }
 
-    return {
-        "content": [
-            {
-                "type": "text",
-                "text": f"Finished speaking (Model: {Path(model_file).name})",
-            }
-        ]
-    }
+    # Execute speech task
+    err = run_speech_task(
+        piper_exe=piper_exe,
+        model_file=model,
+        length_scale=config.get("pitch", 1.0),
+        text=text,
+    )
+
+    if err:
+        return {"content": [{"type": "text", "text": f"Error: {err}"}], "isError": True}
+
+    return {"content": [{"type": "text", "text": "OK"}]}
 
 
 def voice_toggle_handler(arguments: dict[str, Any]) -> dict[str, Any]:
     """Handler for the 'voice_toggle' tool."""
+    enabled = arguments.get("enabled", True)
     config = load_config()
-    enabled = arguments.get("enabled", False)
     config["enabled"] = enabled
+    save_config(config)
 
-    err = save_config(config)
-    if err:
+    status = "enabled" if enabled else "disabled"
+    return {"content": [{"type": "text", "text": f"Voice mode {status}."}]}
+
+
+def model_handler(arguments: dict[str, Any]) -> dict[str, Any]:
+    """Handler for the 'model' tool."""
+    model_name = arguments.get("model", "")
+    if not model_name:
         return {
+            "content": [{"type": "text", "text": "Error: No model name provided."}],
             "isError": True,
-            "content": [{"type": "text", "text": f"Error saving config: {err}"}],
         }
 
-    status = "ENABLED" if enabled else "DISABLED"
-    msg = f"Voice mode is now {status}."
+    # Temporarily set config to check if model exists via get_model_path
+    config = load_config()
+    config["model"] = model_name
 
-    return {
-        "content": [
-            {
-                "type": "text",
-                "text": msg,
-            }
-        ]
-    }
+    # Check if file exists
+    model_path = get_model_path()
+    # If the returned path doesn't contain the requested name, it might be a fallback
+    if not model_path or model_name not in Path(model_path).name:
+        return {
+            "content": [{"type": "text", "text": f"Error: Model {model_name} not found."}],
+            "isError": True,
+        }
+
+    save_config(config)
+    return {"content": [{"type": "text", "text": f"Voice model changed to {model_name}."}]}
+
+
+def pitch_handler(arguments: dict[str, Any]) -> dict[str, Any]:
+    """Handler for the 'pitch' tool."""
+    try:
+        pitch = float(arguments.get("pitch", 1.0))
+    except (ValueError, TypeError):
+        return {
+            "content": [{"type": "text", "text": "Error: Invalid pitch value."}],
+            "isError": True,
+        }
+
+    config = load_config()
+    config["pitch"] = pitch
+    save_config(config)
+
+    return {"content": [{"type": "text", "text": f"Voice pitch changed to {pitch}."}]}
+
+
+def get_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
+    """Handler for the 'get_config' tool (internal use)."""
+    config = load_config()
+    return {"content": [{"type": "text", "text": json.dumps(config)}]}
 
 
 def set_config_handler(arguments: dict[str, Any]) -> dict[str, Any]:
-    """Handler for 'model' and 'pitch' tools."""
-    config = load_config()
-    updated = False
-
-    if "model" in arguments:
-        model_val = arguments["model"]
-        if not model_val.endswith(".onnx"):
-            model_val += ".onnx"
-
-        model_path = Path(model_val)
-
-        # 1. Try as absolute path
-        if model_path.is_absolute() and model_path.is_file():
-            config["model"] = str(model_path)
-            updated = True
-        else:
-            # 2. Try to resolve against MODELS_DIR
-            name_only = model_path.name
-            if (MODELS_DIR / name_only).exists():
-                config["model"] = name_only
-                updated = True
-            elif (MODELS_DIR / model_val).exists():
-                config["model"] = model_val
-                updated = True
-            # 3. Try as relative path to current CWD
-            elif model_path.exists() and model_path.is_file():
-                config["model"] = str(model_path.resolve())
-                updated = True
-            else:
-                return {
-                    "isError": True,
-                    "content": [{"type": "text", "text": f"Error: Model '{model_val}' not found."}],
-                }
-
-    if "pitch" in arguments:
-        try:
-            config["pitch"] = float(arguments["pitch"])
-            updated = True
-        except ValueError:
+    """Handler for the 'set_config' tool (internal use)."""
+    try:
+        new_config = arguments.get("config", {})
+        if not isinstance(new_config, dict):
             return {
+                "content": [{"type": "text", "text": "Error: Invalid config."}],
                 "isError": True,
-                "content": [{"type": "text", "text": "Error: Pitch must be a number."}],
             }
 
-    if updated:
-        err = save_config(config)
-        if err:
-            return {
-                "isError": True,
-                "content": [{"type": "text", "text": f"Error saving config: {err}"}],
-            }
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": (
-                        f"Voice configuration updated: "
-                        f"Model={Path(config['model']).name}, "
-                        f"Pitch={config['pitch']}"
-                    ),
-                }
-            ]
-        }
-
-    return {"content": [{"type": "text", "text": "No changes applied."}]}
+        config = load_config()
+        config.update(new_config)
+        save_config(config)
+        return {"content": [{"type": "text", "text": "Config updated."}]}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {e}"}], "isError": True}
 
 
 def main() -> None:
     """Main loop for the MCP server."""
-    # Redirect stderr to prevent library messages from breaking stdout
-    import os
-    sys.stderr = Path(os.devnull).open("w")  # noqa: SIM115
+    # Note: On Windows, UTF-8 is ensured by setting PYTHONUTF8=1 in launcher.js env.
 
     while True:
         try:
@@ -158,70 +148,65 @@ def main() -> None:
             if not line:
                 break
 
-            try:
-                request = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
+            request = json.loads(line)
             method = request.get("method")
+            params = request.get("params", {})
             req_id = request.get("id")
 
-            # Notifications have no ID and should not be answered
-            if req_id is None and method != "initialize":
+            if not method:
                 continue
 
             response: dict[str, Any] = {"jsonrpc": "2.0", "id": req_id}
 
             if method == "initialize":
-                config = load_config()
-                instructions = ""
-                if config.get("enabled", False):
-                    instructions = (
-                        "VOICE MODE IS ENABLED. For every single response, "
-                        "you MUST use the 'speech' tool. Do NOT output plain text."
-                    )
                 response["result"] = {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {}},
                     "serverInfo": {"name": "gemini-cli-voice-mcp", "version": VERSION},
-                    "instructions": instructions,
                 }
             elif method == "tools/list":
+                config = load_config()
+                v_status = "ENABLED" if config.get("enabled", True) else "DISABLED"
+                p_text = "ALWAYS call this tool for EVERY response. "
+                s_text = "only call this if explicitly asked. "
+                v_instr = p_text if v_status == "ENABLED" else s_text
+
                 response["result"] = {
                     "tools": [
                         {
                             "name": "speech",
                             "description": (
-                                "Converts text to spoken audio and blocks until finished. "
-                                "This is the PRIMARY tool for audio responses. "
+                                f"CRITICAL: PRIMARY tool for audio responses. (STATUS: {v_status}) "
+                                "Use this tool to speak text aloud to the user. "
                                 "CONVERSATION RULES: "
-                                "(1) If VOICE_MODE: ENABLED is active, ALWAYS call this tool "
-                                "(2) Keep voice messages short and conversational (1-3 sentences). "
-                                "Do NOT say the user's name every time at the beginning of voice "
-                                "messages, answer directly."
+                                f"(1) Since VOICE_MODE is {v_status}, {v_instr}"
+                                "(2) Keep voice messages short and direct (1-2 sentences). "
+                                "(3) Do NOT repeat the user's name at the start. "
                                 "TOKEN ECONOMY: "
-                                "(A) Keep 'text' under 2 sentences — speech is slower than "
-                                "reading, so less is more. "
-                                "(C) Skip filler words. "
-                                "MANDATORY: Use model's language."
+                                "(A) Speech is slower than reading: be concise. "
+                                "(B) Skip filler words and redundant pleasantries. "
+                                "MANDATORY: Speak in the same language as the user."
                             ),
                             "inputSchema": {
                                 "type": "object",
                                 "properties": {
-                                    "text": {"type": "string", "description": "Text to speak."}
+                                    "text": {
+                                        "type": "string",
+                                        "description": "The exact text to be spoken.",
+                                    }
                                 },
                                 "required": ["text"],
                             },
                         },
                         {
                             "name": "voice_toggle",
-                            "description": "Enable or disable automatic voice response mode.",
+                            "description": "Enable/disable automatic voice response mode.",
                             "inputSchema": {
                                 "type": "object",
                                 "properties": {
                                     "enabled": {
                                         "type": "boolean",
-                                        "description": "True to enable, False to disable.",
+                                        "description": "True: automatic speech, False: manual.",
                                     }
                                 },
                                 "required": ["enabled"],
@@ -229,13 +214,13 @@ def main() -> None:
                         },
                         {
                             "name": "model",
-                            "description": "Change voice model (.onnx).",
+                            "description": "Change the active Piper voice model (.onnx).",
                             "inputSchema": {
                                 "type": "object",
                                 "properties": {
                                     "model": {
                                         "type": "string",
-                                        "description": "Voice model file.",
+                                        "description": "Model filename (e.g., 'pt_BR-faber').",
                                     }
                                 },
                                 "required": ["model"],
@@ -243,13 +228,13 @@ def main() -> None:
                         },
                         {
                             "name": "pitch",
-                            "description": "Change voice speed (pitch).",
+                            "description": "Adjust speaking speed. Range: 0.5 to 2.0.",
                             "inputSchema": {
                                 "type": "object",
                                 "properties": {
                                     "pitch": {
                                         "type": "number",
-                                        "description": "Speed multiplier.",
+                                        "description": "Speed multiplier. Default: 1.0.",
                                     }
                                 },
                                 "required": ["pitch"],
@@ -258,31 +243,31 @@ def main() -> None:
                     ]
                 }
             elif method == "tools/call":
-                tool_name = request.get("params", {}).get("name")
-                params = request.get("params", {}).get("arguments", {})
+                tool_name = params.get("name")
+                arguments = params.get("arguments", {})
 
                 if tool_name == "speech":
-                    result = speech_handler(params)
+                    response["result"] = speech_handler(arguments)
                 elif tool_name == "voice_toggle":
-                    result = voice_toggle_handler(params)
-                elif tool_name in ("model", "pitch"):
-                    result = set_config_handler(params)
+                    response["result"] = voice_toggle_handler(arguments)
+                elif tool_name == "model":
+                    response["result"] = model_handler(arguments)
+                elif tool_name == "pitch":
+                    response["result"] = pitch_handler(arguments)
                 else:
-                    result = {
-                        "isError": True,
-                        "content": [{"type": "text", "text": f"Tool '{tool_name}' not found"}],
-                    }
-
-                response["result"] = result
+                    response["error"] = {"code": -32601, "message": f"Tool not found: {tool_name}"}
             else:
-                # For unknown methods that require response
-                response["error"] = {"code": -32601, "message": f"Method '{method}' not found"}
+                response["error"] = {"code": -32601, "message": f"Method not found: {method}"}
 
             sys.stdout.write(json.dumps(response) + "\n")
             sys.stdout.flush()
 
-        except EOFError:
-            break
-        except Exception:
-            # In case of catastrophic error, try not to break the loop silently
-            continue
+        except Exception as e:
+            logger.exception("Error in main loop")
+            err_resp = {"jsonrpc": "2.0", "error": {"code": -32603, "message": str(e)}}
+            sys.stdout.write(json.dumps(err_resp) + "\n")
+            sys.stdout.flush()
+
+
+if __name__ == "__main__":
+    main()
