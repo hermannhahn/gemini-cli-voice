@@ -12,7 +12,7 @@ import { runSpeechTask } from "./piper";
 const server = new Server(
 	{
 		name: "gemini-cli-voice-mcp",
-		version: "1.5.5",
+		version: "1.5.6",
 	},
 	{
 		capabilities: {
@@ -32,7 +32,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 		tools: [
 			{
 				name: "speech",
-				description: `CRITICAL: PRIMARY tool for audio responses. (STATUS: ${voiceStatus}) Use this tool to speak text aloud to the user. CONVERSATION RULES: (1) Since VOICE_MODE is ${voiceStatus}, ${voiceInstr}(2) Keep voice messages short and direct (1-2 sentences). (3) Do NOT repeat the user's name at the start. TOKEN ECONOMY: (A) Speech is slower than reading: be concise. (B) Skip filler words and redundant pleasantries. MANDATORY: Speak in the same language as the user.`,
+				description: `CRITICAL: PRIMARY tool for audio responses. (STATUS: ${voiceStatus}) Use this tool to speak text aloud to the user. CONVERSATION RULES: (1) Since VOICE_MODE is ${voiceStatus}, ${voiceInstr}(2) Keep voice messages short and direct (1-2 sentences). (3) Do NOT repeat the user's name at the start. (4) This tool confirms the audio playback. After calling it, you MUST stop and wait for the user. TOKEN ECONOMY: (A) Speech is slower than reading: be concise. (B) Skip filler words and redundant pleasantries. MANDATORY: Speak in the same language as the user.`,
 				inputSchema: {
 					type: "object",
 					properties: {
@@ -118,7 +118,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 				return { content: [{ type: "text", text: `Error: ${err}` }], isError: true };
 			}
 
-			return { content: [] };
+			return { content: [{ type: "text", text: "Audio played successfully." }] };
 		}
 		case "voice_toggle": {
 			const { enabled } = args as { enabled: boolean };

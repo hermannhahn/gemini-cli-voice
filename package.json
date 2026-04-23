@@ -1,6 +1,6 @@
 {
 	"name": "@hahnd/gemini-cli-voice",
-	"version": "1.5.5",
+	"version": "1.5.6",
 	"description": "High-quality local text-to-speech (TTS) for Gemini CLI using Piper.",
 	"keywords": [
 		"TTS",
