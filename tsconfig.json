@@ -4,7 +4,7 @@
 		"lib": ["ESNext"],
 		"target": "es2018",
 		"moduleResolution": "node",
-		"ignoreDeprecations": "5.0",
+		"ignoreDeprecations": "6.0",
 		"outDir": "./dist",
 		"rootDir": "src/",
 		"strict": true,
@@ -13,5 +13,5 @@
 		"skipLibCheck": true
 	},
 	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist", "docs", "scripts", ".venv"]
+	"exclude": ["node_modules", "dist", "docs", "scripts", ".venv", ".vscode", ".git", ".github"]
 }

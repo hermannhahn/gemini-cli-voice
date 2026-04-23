@@ -118,7 +118,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 				return { content: [{ type: "text", text: `Error: ${err}` }], isError: true };
 			}
 
-			return { content: [{ type: "text", text: "OK" }] };
+			return;
 		}
 		case "voice_toggle": {
 			const { enabled } = args as { enabled: boolean };
