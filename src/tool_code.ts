@@ -12,7 +12,7 @@ import { runSpeechTask } from "./piper";
 const server = new Server(
 	{
 		name: "gemini-cli-voice-mcp",
-		version: "1.5.4",
+		version: "1.5.5",
 	},
 	{
 		capabilities: {
@@ -118,7 +118,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 				return { content: [{ type: "text", text: `Error: ${err}` }], isError: true };
 			}
 
-			return;
+			return { content: [] };
 		}
 		case "voice_toggle": {
 			const { enabled } = args as { enabled: boolean };
